@@ -97,10 +97,34 @@
 
       timerDisplay.innerText = `${minutes}:${seconds}`;
 
+      // Change color based on time left
+      if (timeLeft <= 60) {  // last 1 minute
+        timerDisplay.classList.add("danger");
+        timerDisplay.classList.remove("warning");
+      } 
+      else if (timeLeft <= 600) {  // last 10 minutes
+        timerDisplay.classList.add("warning");
+        timerDisplay.classList.remove("danger");
+      } 
+      else {
+        timerDisplay.classList.remove("warning", "danger");
+      }
+
+      // Auto-submit when time ends
       if (timeLeft <= 0) {
         clearInterval(timer);
-        alert("⏰ Time is up! Submitting your test...");
-        submitTest(); // auto-submit when time ends
+
+        // Confirmation before submit
+        if (confirm("⏰ Time is up!\nDo you want to submit your test now?")) {
+          if (typeof submitTest === "function") {
+            submitTest();
+          }
+        } else {
+          alert("⚠️ Test will be auto-submitted anyway.");
+          if (typeof submitTest === "function") {
+            submitTest();
+          }
+        }
       }
 
       timeLeft--;
@@ -111,7 +135,7 @@
   window.onload = () => {
     startTimer();
 
-    // also load first question or whatever you have
+    // load first question if function exists
     if (typeof loadQuestion === "function") {
       loadQuestion(0);
     }

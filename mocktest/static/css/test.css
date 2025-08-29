@@ -85,7 +85,24 @@ img{height: 40px;width: 120px;}
 #timer {
   font-size: 20px;
   font-weight: bold;
-  color: red; /* makes it stand out */
+  color: black; /* default */
+}
+
+/* Last 10 minutes warning */
+#timer.warning {
+  color: orange;
+}
+
+/* Last 1 minute - red & blinking */
+#timer.danger {
+  color: red;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .answer-box {
