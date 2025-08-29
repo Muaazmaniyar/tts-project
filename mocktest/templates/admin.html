@@ -1,166 +1,112 @@
 {% load static %}
 <!DOCTYPE html>
-<!-- Coding By CodingNepal - codingnepalweb.com -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!----======== CSS ======== -->
+    <title>Admin Dashboard - Medical Coding Portal</title>
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-     
-    <!----===== Iconscout CSS ===== -->
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
-    <title>Admin Dashboard Panel</title>
 </head>
 <body>
+    <!-- Sidebar -->
     <nav>
         <div class="logo-name">
             <div class="logo-image">
-               <img src="../static/images/technokraft-logo.png" alt="">
+                <img src="{% static 'images/technokraft-logo.png' %}" alt="Logo">
             </div>
-            
+            <span class="logo-text">MedCode Admin</span>
         </div>
+
         <div class="menu-items">
             <ul class="nav-links">
-                <li><a href="#">
-                    <i class="uil uil-estate"></i>
-                    <span class="link-name">Dahsboard</span>
-                </a></li>
-                <li><a href="#">
-                    <i class="uil uil-files-landscapes"></i>
-                    <span class="link-name">Exam</span>
-                </a></li>
-                <li><a href="#">
-                    <i class="uil uil-chart"></i>
-                    <span class="link-name">Analysis</span>
-                </a></li>
-                <!-- <li><a href="#">
-                    <i class="uil uil-thumbs-up"></i>
-                    <span class="link-name">Like</span>
-                </a></li>
-                <li><a href="#">
-                    <i class="uil uil-comments"></i>
-                    <span class="link-name">Comment</span>
-                </a></li> -->
-                <!-- <li><a href="#">
-                    <i class="uil uil-share"></i>
-                    <span class="link-name">Share</span>
-                </a></li> -->
+                <li><a href="#"><i class="uil uil-estate"></i> <span>Dashboard</span></a></li>
+                <li><a href="#"><i class="uil uil-users-alt"></i> <span>Students</span></a></li>
+                <li><a href="#"><i class="uil uil-file-medical"></i> <span>Exams</span></a></li>
+                <li><a href="#"><i class="uil uil-award"></i> <span>Results</span></a></li>
+                <li><a href="#"><i class="uil uil-setting"></i> <span>Settings</span></a></li>
             </ul>
-            
+
             <ul class="logout-mode">
-                <li><a href="#">
-                    <i class="uil uil-signout"></i>
-                    <span class="link-name">Logout</span>
-                </a></li>
+                <li><a href="#"><i class="uil uil-signout"></i> <span>Logout</span></a></li>
                 <li class="mode">
-                    <a href="#">
-                        <i class="uil uil-moon"></i>
-                    <span class="link-name">Dark Mode</span>
-                </a>
-                <div class="mode-toggle">
-                  <span class="switch"></span>
-                </div>
-            </li>
+                    <a href="#"><i class="uil uil-moon"></i> <span>Dark Mode</span></a>
+                    <div class="mode-toggle"><span class="switch"></span></div>
+                </li>
             </ul>
         </div>
     </nav>
+
+    <!-- Main Dashboard -->
     <section class="dashboard">
         <div class="top">
             <i class="uil uil-bars sidebar-toggle"></i>
             <div class="search-box">
                 <i class="uil uil-search"></i>
-                <input type="text" placeholder="Search here...">
+                <input type="text" placeholder="Search...">
             </div>
-            
-            <!--<img src="images/profile.jpg" alt="">-->
+            <div class="profile">
+                <img src="https://i.pravatar.cc/40" alt="Profile">
+                <span>Admin</span>
+            </div>
         </div>
+
         <div class="dash-content">
+            <!-- Overview Section -->
             <div class="overview">
                 <div class="title">
                     <i class="uil uil-tachometer-fast-alt"></i>
-                    <span class="text">Dashboard</span>
+                    <span>Dashboard Overview</span>
                 </div>
-                <!-- <div class="boxes">
+                <div class="boxes">
                     <div class="box box1">
-                        <i class="uil uil-thumbs-up"></i>
-                        <span class="text">Total Likes</span>
-                        <span class="number">50,120</span>
+                        <i class="uil uil-users-alt"></i>
+                        <span>Total Students</span>
+                        <h3>1,250</h3>
                     </div>
                     <div class="box box2">
-                        <i class="uil uil-comments"></i>
-                        <span class="text">Comments</span>
-                        <span class="number">20,120</span>
+                        <i class="uil uil-file-medical"></i>
+                        <span>Exams Conducted</span>
+                        <h3>340</h3>
                     </div>
                     <div class="box box3">
-                        <i class="uil uil-share"></i>
-                        <span class="text">Total Share</span>
-                        <span class="number">10,120</span>
+                        <i class="uil uil-award"></i>
+                        <span>Certificates Issued</span>
+                        <h3>980</h3>
                     </div>
-                </div> -->
+                </div>
             </div>
-            <!-- <div class="activity">
+
+            <!-- Recent Activity -->
+            <div class="activity">
                 <div class="title">
                     <i class="uil uil-clock-three"></i>
-                    <span class="text">Recent Activity</span>
+                    <span>Recent Student Activity</span>
                 </div>
-                <div class="activity-data">
-                    <div class="data names">
-                        <span class="data-title">Name</span>
-                        <span class="data-list">Prem Shahi</span>
-                        <span class="data-list">Deepa Chand</span>
-                        <span class="data-list">Manisha Chand</span>
-                        <span class="data-list">Pratima Shahi</span>
-                        <span class="data-list">Man Shahi</span>
-                        <span class="data-list">Ganesh Chand</span>
-                        <span class="data-list">Bikash Chand</span>
-                    </div>
-                    <div class="data email">
-                        <span class="data-title">Email</span>
-                        <span class="data-list">premshahi@gmail.com</span>
-                        <span class="data-list">deepachand@gmail.com</span>
-                        <span class="data-list">prakashhai@gmail.com</span>
-                        <span class="data-list">manishachand@gmail.com</span>
-                        <span class="data-list">pratimashhai@gmail.com</span>
-                        <span class="data-list">manshahi@gmail.com</span>
-                        <span class="data-list">ganeshchand@gmail.com</span>
-                    </div>
-                    <div class="data joined">
-                        <span class="data-title">Joined</span>
-                        <span class="data-list">2022-02-12</span>
-                        <span class="data-list">2022-02-12</span>
-                        <span class="data-list">2022-02-13</span>
-                        <span class="data-list">2022-02-13</span>
-                        <span class="data-list">2022-02-14</span>
-                        <span class="data-list">2022-02-14</span>
-                        <span class="data-list">2022-02-15</span>
-                    </div>
-                    <div class="data type">
-                        <span class="data-title">Type</span>
-                        <span class="data-list">New</span>
-                        <span class="data-list">Member</span>
-                        <span class="data-list">Member</span>
-                        <span class="data-list">New</span>
-                        <span class="data-list">Member</span>
-                        <span class="data-list">New</span>
-                        <span class="data-list">Member</span>
-                    </div>
-                    <div class="data status">
-                        <span class="data-title">Status</span>
-                        <span class="data-list">Liked</span>
-                        <span class="data-list">Liked</span>
-                        <span class="data-list">Liked</span>
-                        <span class="data-list">Liked</span>
-                        <span class="data-list">Liked</span>
-                        <span class="data-list">Liked</span>
-                        <span class="data-list">Liked</span>
-                    </div>
-                </div>
-            </div> -->
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Prem Shahi</td><td>premshahi@gmail.com</td><td>2022-02-12</td><td><span class="status active">Active</span></td></tr>
+                        <tr><td>Deepa Chand</td><td>deepachand@gmail.com</td><td>2022-02-12</td><td><span class="status pending">Pending</span></td></tr>
+                        <tr><td>Manisha Chand</td><td>manishachand@gmail.com</td><td>2022-02-13</td><td><span class="status active">Active</span></td></tr>
+                        <tr><td>Pratima Shahi</td><td>pratimashhai@gmail.com</td><td>2022-02-13</td><td><span class="status blocked">Blocked</span></td></tr>
+                        <tr><td>Ganesh Chand</td><td>ganeshchand@gmail.com</td><td>2022-02-15</td><td><span class="status active">Active</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </section>
-    <script src="script.js"></script>
+
+    <!-- JS -->
+    <script src="{% static 'scripts/admin.js' %}"></script>
 </body>
 </html>

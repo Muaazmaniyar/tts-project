@@ -156,3 +156,6 @@ def review(request):
         "score": score,
         "total": total
     })
+
+def testpanel(request):
+    return render(request, 'test.html')
