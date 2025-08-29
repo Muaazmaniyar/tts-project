@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PCM Mock Test</title>
+  <title> Mock Test</title>
   <link rel="stylesheet" href="../static/css/test.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
 
     <!-- Sidebar (moved to left side) -->
     <aside class="sidebar">
-      <h2>Physics</h2>
+      <img src="../static/images/technokraft-logo.png">
       <p><strong>Choose a Question</strong></p>
       <div class="question-grid">
         <button>1</button>
@@ -50,9 +50,9 @@
     <!-- Main Content -->
     <main class="main-content">
       <header class="header">
-        <h1>PCM Mock Test</h1>
-        <p><strong>Time Left:</strong> 89:43</p>
-      </header>
+  <h1>Mock Test</h1>
+  <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
+</header>
 
       <!-- Question Box -->
       <div class="question-box">
@@ -64,7 +64,7 @@
 
       <!-- Answer Box -->
       <div class="answer-box">
-        <label><input type="radio" name="q1"> E10.621</label><br>
+        <label><input type="radio" name="q1"required> E10.621 </label><br>
         <label><input type="radio" name="q1">  E10.51 </label><br>
         <label><input type="radio" name="q1"> E10.22</label><br>
         <label><input type="radio" name="q1"> N18.2</label><br>
@@ -79,6 +79,44 @@
       </div>
     </main>
   </div>
+
+  <script>
+  // Timer setup (60 minutes = 3600 seconds)
+  let timeLeft = 60 * 60;
+
+  function startTimer() {
+    const timerDisplay = document.getElementById("timer");
+
+    const timer = setInterval(() => {
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+
+      // Format MM:SS
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
+
+      timerDisplay.innerText = `${minutes}:${seconds}`;
+
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        alert("⏰ Time is up! Submitting your test...");
+        submitTest(); // auto-submit when time ends
+      }
+
+      timeLeft--;
+    }, 1000);
+  }
+
+  // Call timer when page loads
+  window.onload = () => {
+    startTimer();
+
+    // also load first question or whatever you have
+    if (typeof loadQuestion === "function") {
+      loadQuestion(0);
+    }
+  };
+</script>
 </body>
 </html>
 

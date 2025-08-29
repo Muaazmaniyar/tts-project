@@ -16,11 +16,13 @@ body {
   height: 100vh;
 }
 
+img{height: 40px;width: 120px;}
+
 /* Sidebar */
 .sidebar {
   width: 220px;
-  background: #2c2c2c; /* dark grey */
-  color: #f1f1f1;
+  background: lightgray; /* light grey */
+  color: #100b0b;
   padding: 20px;
   box-shadow: 3px 0 6px rgba(122, 110, 110, 0.2);
 }
@@ -52,7 +54,7 @@ body {
 
 .question-grid button:hover {
   background:  #b0b0b0;
-  padding: 25px;
+  padding: 15px;
 }
 
 
@@ -78,6 +80,12 @@ body {
   border-radius: 8px;
   box-shadow: 0px 3px 6px rgba(0,0,0,0.1);
   margin-bottom: 20px;
+}
+
+#timer {
+  font-size: 20px;
+  font-weight: bold;
+  color: red; /* makes it stand out */
 }
 
 .answer-box {
@@ -112,7 +120,7 @@ body {
   border-radius: 10px;
   cursor: pointer;
   font-weight: bold;
-  background: #000;               /* black background */
+  background:black;              /* black background */
   color: white;
   font-size: 16px;
   position: relative;
