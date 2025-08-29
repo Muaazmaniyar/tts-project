@@ -1,0 +1,30 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="review-container">
+    <h2>Test Review</h2>
+    <table border="1" cellpadding="8" cellspacing="0">
+        <tr>
+            <th>Question</th>
+            <th>Your Answer</th>
+            <th>Correct Answer</th>
+            <th>Status</th>
+        </tr>
+        {% for ans in answers %}
+        <tr>
+            <td>{{ ans.question.question_text }}</td>
+            <td>{{ ans.selected }}</td>
+            <td>{{ ans.correct }}</td>
+            <td>
+                {% if ans.is_correct %}
+                    ✅ Correct
+                {% else %}
+                    ❌ Wrong
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p><b>Total Marks:</b> {{ score }} / {{ total }}</p>
+</div>
+{% endblock %}
