@@ -32,7 +32,14 @@ def student_logout(request):
         del request.session['student_id']
     except KeyError:
         pass
-    return redirect("student_login")
+    return redirect("login")
+
+
+def start_test(request):
+    if 'student_id' not in request.session:
+        return redirect("login")
+    return render(request, "start_test.html")
+
 
 
 def mcq_test(request):

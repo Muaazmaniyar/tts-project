@@ -5,3 +5,4 @@ from .models import Student
 class StudentAdmin(admin.ModelAdmin):
     list_display = ("roll_no", "name", "course")
     search_fields = ("roll_no", "name")
+

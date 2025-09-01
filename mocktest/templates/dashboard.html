@@ -28,7 +28,7 @@
                     <i class="uil uil-estate"></i>
                     <span class="link-name">Dahsboard</span>
                 </a></li>
-                <li><a href="#" onclick="showExam()">
+                <li><a href="{% url 'start_test' %}">
                     <i class="uil uil-files-landscapes"></i>
                     <span class="link-name">Exam</span>
                     </a>
@@ -54,10 +54,14 @@
             </ul>
             
             <ul class="logout-mode">
-                <li><a href="#">
-                    <i class="uil uil-signout"></i>
-                    <span class="link-name">Logout</span>
-                </a></li>
+                <li>
+                    <a href="{% url 'logout' %}">
+                        <i class="uil uil-signout"></i>
+                        <span class="link-name">Logout</span>
+                    </a>
+                </li>
+            </ul>
+
                 <li class="mode">
                     <a href="#">
                         <i class="uil uil-moon"></i>
@@ -86,6 +90,13 @@
                     <i class="uil uil-tachometer-fast-alt"></i>
                     <span class="text">Dashboard</span>
                 </div>
+
+                {% block content %}
+
+                
+                {% endblock %}
+
+
                 <!-- <div class="boxes">
                     <div class="box box1">
                         <i class="uil uil-thumbs-up"></i>
@@ -167,3 +178,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
+
+
