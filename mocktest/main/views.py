@@ -7,10 +7,11 @@ def student_login(request):
         password = request.POST.get("password")
 
         try:
+            # check if student exists
             student = Student.objects.get(name=name, password=password)
-            # store student ID in session
+            # store student ID (primary key) in session
             request.session['student_id'] = student.id
-            return redirect("student_dashboard")
+            return redirect("dashboard")  # ✅ use url name, not template
         except Student.DoesNotExist:
             return render(request, "login.html", {"error": "Invalid name or password"})
 
@@ -20,7 +21,7 @@ def student_login(request):
 def student_dashboard(request):
     student_id = request.session.get('student_id')
     if not student_id:
-        return redirect("student_login")  # not logged in
+        return redirect("login")  # not logged in
 
     student = Student.objects.get(id=student_id)
     return render(request, "dashboard.html", {"student": student})
