@@ -15,9 +15,10 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+from django.db import models
+
 class Question(models.Model):
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    question_text = models.CharField(max_length=255)
+    question_text = models.TextField()
     option1 = models.CharField(max_length=255)
     option2 = models.CharField(max_length=255)
     option3 = models.CharField(max_length=255)
@@ -25,5 +26,5 @@ class Question(models.Model):
     correct_answer = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.question_text
+        return self.question_text[:50]
 

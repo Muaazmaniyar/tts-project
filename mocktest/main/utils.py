@@ -1,25 +1,19 @@
-import csv
-import os
+import csv, os
 from django.conf import settings
 
 def get_questions_from_csv():
     questions = []
-    # Hardcode your single course file here
-    file_path = os.path.join(settings.BASE_DIR, 'Courses', 'math.csv')
+    file_path = os.path.join(settings.BASE_DIR, 'myapp', 'fixtures', 'icd_part_a.csv')
     
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("CSV file for course not found.")
-    
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
+    with open(file_path, newline='', encoding='cp1252') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             questions.append({
-                'question_text': row['question_text'],
+                'question_text': row['question'],
                 'option1': row['option1'],
                 'option2': row['option2'],
                 'option3': row['option3'],
                 'option4': row['option4'],
-                'correct_option': row['correct_option']
+                'correct_option': row['correct_answer'],
             })
-    
     return questions

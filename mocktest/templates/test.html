@@ -1,149 +1,86 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> Mock Test</title>
-  <link rel="stylesheet" href="../static/css/test.css">
+  <title>Mock Test</title>
+  <link rel="stylesheet" href="{% static 'css/test.css' %}">
 </head>
 <body>
   <div class="container">
 
-    <!-- Sidebar (moved to left side) -->
+    <!-- Sidebar -->
     <aside class="sidebar">
-      <img src="../static/images/technokraft-logo.png">
+      <img src="{% static 'images/technokraft-logo.png' %}" alt="Logo">
       <p><strong>Choose a Question</strong></p>
       <div class="question-grid">
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button>4</button>
-        <button>5</button>
-        <button>6</button>
-        <button>7</button>
-        <button>8</button>
-        <button>9</button>
-        <button>10</button>
-        <button>11</button>
-        <button>12</button>
-        <button>13</button>
-        <button>14</button>
-        <button>15</button>
-        <button>16</button>
-        <button>17</button>
-        <button>18</button>
-        <button>19</button>
-        <button>20</button>
-        <button>21</button>
-        <button>22</button>
-        <button>23</button>
-        <button>24</button>
-        <button>25</button>
-        <button>26</button>
-        <button>27</button>
-        <button>28</button>
-        <button>29</button>
-        <button>30</button>
+        {% for q in questions %}
+          <button type="button" onclick="showQuestion({{ forloop.counter0 }})">
+            {{ forloop.counter }}
+          </button>
+        {% endfor %}
       </div>
     </aside>
 
     <!-- Main Content -->
     <main class="main-content">
       <header class="header">
-  <h1>Mock Test</h1>
-  <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
-</header>
+        <h1>Mock Test</h1>
+        <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
+      </header>
 
-      <!-- Question Box -->
-      <div class="question-box">
-        <h3>Question No. 1</h3>
-        <p>
-          This type 1 diabetic patient has a severe chronic diabetic left foot ulcer with diabetic peripheral  angiopathy. He also has diabetic stage 2 chronic kidney disease. He is being evaluated to see if  debridement is required for this ulcer with breakdown of the skin. What is the correct diagnosis code  assignment? :
-        </p>
-      </div>
+      <form method="POST">
+        {% csrf_token %}
 
-      <!-- Answer Box -->
-      <div class="answer-box">
-        <label><input type="radio" name="q1"required> E10.621 </label><br>
-        <label><input type="radio" name="q1">  E10.51 </label><br>
-        <label><input type="radio" name="q1"> E10.22</label><br>
-        <label><input type="radio" name="q1"> N18.2</label><br>
-      </div>
+        {% for question in questions %}
+        <div class="question-box" id="question-{{ forloop.counter0 }}" style="{% if not forloop.first %}display:none;{% endif %}">
+          <h3>Question No. {{ forloop.counter }}</h3>
+          <p>{{ question.question_text }}</p>
 
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button class="mark">Mark for Review & Next</button>
-        <button class="clear">Clear Response</button>
-        <button class="save">Save & Next</button>
-        <button class="submit">Submit</button>
-      </div>
+          <!-- Answer Box -->
+          <div class="answer-box">
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}"> {{ question.option1 }}</label><br>
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}</label><br>
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}</label><br>
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option4 }}"> {{ question.option4 }}</label><br>
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button type="button" class="mark">Mark for Review & Next</button>
+          <button type="button" class="clear" onclick="clearResponse()">Clear Response</button>
+          <button type="button" class="save" onclick="nextQuestion()">Save & Next</button>
+          <button type="submit" class="submit">Submit</button>
+        </div>
+      </form>
     </main>
   </div>
 
+  <script src="{% static 'js/test.js' %}"></script>
   <script>
-  // Timer setup (60 minutes = 3600 seconds)
-  let timeLeft = 60 * 60;
+    let currentIndex = 0;
+    const totalQuestions = {{ questions|length }};
 
-  function startTimer() {
-    const timerDisplay = document.getElementById("timer");
-
-    const timer = setInterval(() => {
-      let minutes = Math.floor(timeLeft / 60);
-      let seconds = timeLeft % 60;
-
-      // Format MM:SS
-      minutes = minutes < 10 ? "0" + minutes : minutes;
-      seconds = seconds < 10 ? "0" + seconds : seconds;
-
-      timerDisplay.innerText = `${minutes}:${seconds}`;
-
-      // Change color based on time left
-      if (timeLeft <= 60) {  // last 1 minute
-        timerDisplay.classList.add("danger");
-        timerDisplay.classList.remove("warning");
-      } 
-      else if (timeLeft <= 600) {  // last 10 minutes
-        timerDisplay.classList.add("warning");
-        timerDisplay.classList.remove("danger");
-      } 
-      else {
-        timerDisplay.classList.remove("warning", "danger");
-      }
-
-      // Auto-submit when time ends
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-
-        // Confirmation before submit
-        if (confirm("⏰ Time is up!\nDo you want to submit your test now?")) {
-          if (typeof submitTest === "function") {
-            submitTest();
-          }
-        } else {
-          alert("⚠️ Test will be auto-submitted anyway.");
-          if (typeof submitTest === "function") {
-            submitTest();
-          }
-        }
-      }
-
-      timeLeft--;
-    }, 1000);
-  }
-
-  // Call timer when page loads
-  window.onload = () => {
-    startTimer();
-
-    // load first question if function exists
-    if (typeof loadQuestion === "function") {
-      loadQuestion(0);
+    function showQuestion(index) {
+      document.querySelectorAll('.question-box').forEach((box, i) => {
+        box.style.display = i === index ? 'block' : 'none';
+      });
+      currentIndex = index;
     }
-  };
-</script>
+
+    function nextQuestion() {
+      if (currentIndex < totalQuestions - 1) {
+        showQuestion(currentIndex + 1);
+      }
+    }
+
+    function clearResponse() {
+      const radios = document.querySelectorAll(`#question-${currentIndex} input[type=radio]`);
+      radios.forEach(r => r.checked = false);
+    }
+  </script>
 </body>
 </html>
-
-
-
-
