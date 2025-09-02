@@ -100,20 +100,35 @@ def mcq_test(request):
     }
     return render(request, 'test.html', context)
 
+def result(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    student_id = request.session['student_id']
+    student = Student.objects.get(id=student_id)
+
+    score = 85
+    total = 100
+
+    return render(request, 'result.html', {
+        'student_name': student.name,
+        'roll_no': student.roll_no,
+        'score': score,
+        'total': total,
+    })
 
 def review(request):
     answers = request.session.get("answers_review", [])  # ✅ fixed name
     score = request.session.get("score", 0)
     total = request.session.get("total_questions", 0)   # ✅ fixed name
 
-    return render(request, "main/review.html", {
+    return render(request, "review.html", {
         "answers": answers,
         "score": score,
         "total": total
-})
+    })
 
 
 
 
-def testpanel(request):
-    return render(request, 'test.html')
+

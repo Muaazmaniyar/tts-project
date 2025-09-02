@@ -1,0 +1,35 @@
+{% extends "dashboard.html" %}
+
+{% block content %}
+   
+    <table>
+        <tr>
+            <td><img src="../static/images/technokraft-logo.png" alt="" style="height: 60px;"></td>
+            <td colspan="5"><h1>Medical Coding Mock Test</h1></td>
+        </tr>
+        <tr>
+            <td>Student Name  </td>
+            <td colspan="2 ">{{ student_name }}</td> 
+            <td colspan="2">Roll no</td>
+            <td>{{ roll_no }}   </td>
+        </tr>
+        <tr>
+            <td>Subject name</td>
+            <td>Min marks</td>
+            <td>Max marks</td>
+            <td>Marks obtained</td>
+            <td>Remark</td>
+        </tr>
+        <tr>
+            <td>SUB1</td>
+            <td>33</td>
+            <td>{{total}}</td>
+            <td>{{score}}</td>
+            <td>D</td>
+        </tr>
+    </table>
+
+
+    <h2>Your Score: {{ score }} / {{ total }}</h2>
+    <a href="{% url 'review' %}">Review Answers</a>
+{% endblock %}

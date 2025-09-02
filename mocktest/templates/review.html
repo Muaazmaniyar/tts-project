@@ -2,8 +2,11 @@
 {% block content %}
 <div class="review-container">
     <h2>Test Review</h2>
-    <table border="1" cellpadding="8" cellspacing="0">
+    <h2><b>Total Marks:</b> {{ score }} / {{ total }}</h2>
+    <h2></h2>
+    <table border="1" cellpadding="10" cellspacing="1" width="900px">
         <tr>
+            <th>#</th>
             <th>Question</th>
             <th>Your Answer</th>
             <th>Correct Answer</th>
@@ -11,10 +14,11 @@
         </tr>
         {% for ans in answers %}
         <tr>
-            <td>{{ ans.question.question_text }}</td>
-            <td>{{ ans.selected }}</td>
-            <td>{{ ans.correct }}</td>
-            <td>
+            <td>&nbsp;&nbsp;{{ forloop.counter }}&nbsp;&nbsp;</td>  <!-- Question number -->
+            <td>&nbsp;&nbsp;{{ ans.question_text }}&nbsp;&nbsp;</td>
+            <td>&nbsp;&nbsp;{{ ans.selected_option|default:"Not Attempted" }}&nbsp;&nbsp;</td>
+            <td>&nbsp;&nbsp;{{ ans.correct_answer }}&nbsp;&nbsp;</td>
+            <td>&nbsp;&nbsp;
                 {% if ans.is_correct %}
                     ✅ Correct
                 {% else %}
