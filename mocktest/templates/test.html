@@ -81,6 +81,28 @@
       const radios = document.querySelectorAll(`#question-${currentIndex} input[type=radio]`);
       radios.forEach(r => r.checked = false);
     }
-  </script>
+    
+      document.addEventListener("keydown", function (e) {
+        if ((e.key === "F5") || 
+            (e.ctrlKey && e.key === "r") || 
+            (e.ctrlKey && e.key === "R")) {
+          e.preventDefault();
+          alert("❌ Refresh is disabled during the test.");
+        }
+      });
+
+      // Disable right-click menu
+      document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+      });
+
+      // Disable browser back button
+      history.pushState(null, null, location.href);
+      window.onpopstate = function () {
+        history.go(1);
+      };
+      
+</script>
+
 </body>
 </html>

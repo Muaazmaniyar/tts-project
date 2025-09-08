@@ -6,7 +6,7 @@ class Student(models.Model):
     firstname = models.CharField(max_length=100, null=True, blank=True)
     lastname = models.CharField(max_length=100, null=True, blank=True)  
     student_id = models.CharField(max_length=20, unique=True, editable=False,null=True, blank=True)  
-    password = models.CharField(max_length=128 ,null=True, blank=True)  # ⚠ better to hash this
+    password = models.CharField(max_length=128 ,null=True, blank=True) 
 
     def save(self, *args, **kwargs):
         if not self.student_id:  
@@ -40,3 +40,12 @@ class Question(models.Model):
     def __str__(self):
         return self.question_text[:50]
 
+class TestResult(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    total_questions = models.IntegerField()
+    date_taken = models.DateTimeField(auto_now_add=True)
+    attempt_no = models.IntegerField(default=1) 
+
+    def __str__(self):
+        return f"{self.student} - {self.subject} - {self.score}/{self.total_questions}"

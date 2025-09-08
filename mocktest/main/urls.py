@@ -9,5 +9,7 @@ urlpatterns = [
     path("test/", views.mcq_test, name="mcq_test"),
     path("result/", views.result, name="result"),
     path('review/', views.review, name='review'),
-    path('dashboard/', views.student_dashboard, name='dashboard'),   # new route
+    path('dashboard/', views.student_dashboard, name='dashboard'),
+    path('test_history/', views.test_history, name='test_history'),
+       # new route
 ]

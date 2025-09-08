@@ -47,6 +47,8 @@ def start_test(request):
 
 
 
+from .models import Question, Student, TestResult
+
 def mcq_test(request):
     if 'student_id' not in request.session:
         return redirect('login')
@@ -59,7 +61,7 @@ def mcq_test(request):
         selected_questions = Question.objects.filter(id__in=selected_questions_ids)
 
         score = 0
-        answers_review = []  # store each question, selected, correct
+        answers_review = []
 
         for question in selected_questions:
             selected_option = request.POST.get(f'question_{question.id}')
@@ -76,33 +78,39 @@ def mcq_test(request):
                 'is_correct': is_correct,
             })
 
-        # Save to student
+        # Get student
         studentid = request.session.get('student_id')
         student = get_object_or_404(Student, student_id=studentid)
 
+        # Count previous attempts
+        previous_attempts = TestResult.objects.filter(student=student).count()
+        attempt_no = previous_attempts + 1
 
-        student.score = score
-        student.total_questions = len(selected_questions)
-        student.save()
+        # Save new attempt in TestResult
+        TestResult.objects.create(
+            student=student,
+            score=score,
+            total_questions=len(selected_questions),
+            attempt_no=attempt_no
+        )
 
-        # Save results in session (for review page)
+        # Store for review page
         request.session['score'] = score
         request.session['total_questions'] = len(selected_questions)
         request.session['answers_review'] = answers_review  
 
-        return redirect('review')  # go to review page ✅
+        return redirect('review')
 
     else:
         questions = list(Question.objects.all())
         random.shuffle(questions)
-        selected_questions = questions[:30]  # pick 30 random questions
+        selected_questions = questions[:30]
         selected_questions_ids = [q.id for q in selected_questions]
         request.session['selected_questions'] = selected_questions_ids
 
-    context = {
-        'questions': selected_questions,
-    }
+    context = {'questions': selected_questions}
     return render(request, 'test.html', context)
+
 
 
 def result(request):
@@ -133,6 +141,16 @@ def result(request):
         'test_date': date.today().strftime("%d-%m-%Y"),  # today’s date
     })
 
+def test_history(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    studentid = request.session['student_id']
+    student = get_object_or_404(Student, student_id=studentid)
+
+    results = TestResult.objects.filter(student=student).order_by('-date_taken')
+
+    return render(request, "test_history.html", {"student": student, "results": results})
 
 
 def review(request):
