@@ -1,10 +1,10 @@
 {% extends "dashboard.html" %}
 {% block content %}
-<div class="review-container">
+<div class="review-container" style="width: 1000px; margin: auto;">
     <h2>Test Review</h2>
     <h2><b>Total Marks:</b> {{ score }} / {{ total }}</h2>
-    <h2></h2>
-    <table border="1" cellpadding="10" cellspacing="1" width="900px">
+
+    <table border="1" cellpadding="10" cellspacing="1" style="width: 100%; border-collapse: collapse; text-align: center;">
         <tr>
             <th>#</th>
             <th>Question</th>
@@ -14,11 +14,11 @@
         </tr>
         {% for ans in answers %}
         <tr>
-            <td>&nbsp;&nbsp;{{ forloop.counter }}&nbsp;&nbsp;</td>  <!-- Question number -->
-            <td>&nbsp;&nbsp;{{ ans.question_text }}&nbsp;&nbsp;</td>
-            <td>&nbsp;&nbsp;{{ ans.selected_option|default:"Not Attempted" }}&nbsp;&nbsp;</td>
-            <td>&nbsp;&nbsp;{{ ans.correct_answer }}&nbsp;&nbsp;</td>
-            <td>&nbsp;&nbsp;
+            <td>{{ forloop.counter }}</td>  
+            <td>{{ ans.question_text }}</td>
+            <td>{{ ans.selected_option|default:"Not Attempted" }}</td>
+            <td>{{ ans.correct_answer }}</td>
+            <td>
                 {% if ans.is_correct %}
                     ✅ Correct
                 {% else %}

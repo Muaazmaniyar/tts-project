@@ -1,4 +1,5 @@
 import random
+from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Question, Student
 from django.shortcuts import render, redirect
@@ -6,14 +7,14 @@ from .models import Student
 
 def student_login(request):
     if request.method == "POST":
-        name = request.POST.get("name")
+        student_id = request.POST.get("name")
         password = request.POST.get("password")
 
         try:
             # check if student exists
-            student = Student.objects.get(name=name, password=password)
+            student = Student.objects.get(student_id=student_id, password=password)
             # store student ID (primary key) in session
-            request.session['student_id'] = student.id
+            request.session['student_id'] = student.student_id   # ✅ store MCS001
             return redirect("dashboard")  # ✅ use url name, not template
         except Student.DoesNotExist:
             return render(request, "login.html", {"error": "Invalid name or password"})
@@ -24,10 +25,11 @@ def student_login(request):
 def student_dashboard(request):
     student_id = request.session.get('student_id')
     if not student_id:
-        return redirect("login")  # not logged in
+        return redirect("login")
 
-    student = Student.objects.get(id=student_id)
+    student = get_object_or_404(Student, student_id=student_id)
     return render(request, "dashboard.html", {"student": student})
+
 
 
 def student_logout(request):
@@ -75,8 +77,10 @@ def mcq_test(request):
             })
 
         # Save to student
-        student_id = request.session.get('student_id')
-        student = get_object_or_404(Student, id=student_id)
+        studentid = request.session.get('student_id')
+        student = get_object_or_404(Student, student_id=studentid)
+
+
         student.score = score
         student.total_questions = len(selected_questions)
         student.save()
@@ -100,22 +104,36 @@ def mcq_test(request):
     }
     return render(request, 'test.html', context)
 
+
 def result(request):
     if 'student_id' not in request.session:
         return redirect('login')
 
-    student_id = request.session['student_id']
-    student = Student.objects.get(id=student_id)
+    studentid = request.session['student_id']
+    student = Student.objects.filter(student_id=studentid).first()
+    if not student:
+        return render(request, "result.html", {"error": f"No student found with ID {studentid}"})
 
-    score = 85
-    total = 100
+    score = request.session.get('score', 0)
+    total = request.session.get('total_questions', 0)
+    answers_review = request.session.get('answers_review', [])
+    
+    # Calculate percentage
+    percentage = (score / total * 100) if total > 0 else 0
 
     return render(request, 'result.html', {
-        'student_name': student.name,
-        'roll_no': student.roll_no,
+        'student_id': student.student_id,
+        'firstname': student.firstname,
+        'lastname': student.lastname,
         'score': score,
         'total': total,
+        'total_questions': total,       # needed for template
+        'percentage': round(percentage, 2),
+        'answers_review': answers_review,
+        'test_date': date.today().strftime("%d-%m-%Y"),  # today’s date
     })
+
+
 
 def review(request):
     answers = request.session.get("answers_review", [])  # ✅ fixed name

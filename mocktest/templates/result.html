@@ -1,35 +1,59 @@
 {% extends "dashboard.html" %}
 
 {% block content %}
-   
-    <table>
+<div style="max-width: 800px; margin: auto; border: 2px solid #333; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
+    <table style="width: 100%; border-bottom: 2px solid #333; margin-bottom: 20px;">
         <tr>
-            <td><img src="../static/images/technokraft-logo.png" alt="" style="height: 60px;"></td>
-            <td colspan="5"><h1>Medical Coding Mock Test</h1></td>
-        </tr>
-        <tr>
-            <td>Student Name  </td>
-            <td colspan="2 ">{{ student_name }}</td> 
-            <td colspan="2">Roll no</td>
-            <td>{{ roll_no }}   </td>
-        </tr>
-        <tr>
-            <td>Subject name</td>
-            <td>Min marks</td>
-            <td>Max marks</td>
-            <td>Marks obtained</td>
-            <td>Remark</td>
-        </tr>
-        <tr>
-            <td>SUB1</td>
-            <td>33</td>
-            <td>{{total}}</td>
-            <td>{{score}}</td>
-            <td>D</td>
+            <td style="width: 80px;">
+                <img src="../static/images/technokraft-logo.png" alt="Logo" style="width:80px;">
+            </td>
+            <td style="text-align: center;">
+                <h2 style="margin: 0;">Medical Coding Mock Test</h2>
+                <p style="margin: 0; font-size: 14px;">Official Result Sheet</p>
+            </td>
         </tr>
     </table>
 
+    <table style="width: 100%; margin-bottom: 20px;">
+        <tr>
+            <td><strong>Student Name:</strong></td>
+            <td>{{ firstname }} {{ lastname }}</td>
+            <td><strong>Student Id</strong></td>
+            <td>{{ student_id }}</td>
+        </tr>
+        <tr>
+            <td><strong>Test Date:</strong></td>
+            <td>{{ test_date }}</td>
+            <td><strong>Total Questions:</strong></td>
+            <td>{{ total }}</td>
+        </tr>
+    </table>
 
-    <h2>Your Score: {{ score }} / {{ total }}</h2>
-    <a href="{% url 'review' %}">Review Answers</a>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h3 style="margin: 0;">Your Score: 
+            <span style="color: green;">{{ score }}</span> / {{ total_questions }}
+        </h3>
+        <p>Percentage: <strong>{{ percentage }}%</strong></p>
+        <p>Result: 
+            {% if percentage >= 50 %}
+                <span style="color: green; font-weight: bold;">PASS</span>
+            {% else %}
+                <span style="color: red; font-weight: bold;">FAIL</span>
+            {% endif %}
+        </p>
+    <button type="button" class="btn btn-primary" onclick="window.location.href='{% url 'review' %}'">
+    Exam Summary
+</button>
+
+
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <p>Technokraft Institute of Medical Coding</p>
+        <p style="font-size: 12px; color: gray;">This is a system-generated result, no signature required.</p>
+        <script>
+            console.log("DEBUG student:", "{{ student.firstname }}", "{{ student.lastname }}", "{{ student.student_id }}");
+        </script>
+    </div>
+</div>
 {% endblock %}
