@@ -12,20 +12,26 @@ body {
 }
 
 /* Page wrapper: centers content */
-.container {
-  max-width: 920px;
-  margin: 24px auto;
-  padding: 16px;
+
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 /* The test info card */
 .test-info {
+  width: 600px;
   background: #ffffff;
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 10px 30px rgba(20, 30, 60, 0.08);
   border: 1px solid rgba(20,30,60,0.04);
   transition: transform 180ms ease, box-shadow 180ms ease;
+  display: flex;
+  flex-direction: right;
+  margin: 30px;
 }
 
 /* hover lift (subtle) */
@@ -157,3 +163,13 @@ body {
 /* Optional small utility classes you might reuse */
 .text-muted { color: #6b7280; font-size: 0.95rem; }
 .center { text-align: center; }
+
+.parent {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+grid-template-rows: repeat(6, 1fr);
+grid-column-gap: 20px;
+grid-row-gap: 20px;
+}
+
+.div1 { grid-area: 1 / 1 / 2 / 2; margin-top:20px;}

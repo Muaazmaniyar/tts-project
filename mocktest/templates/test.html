@@ -30,7 +30,7 @@
         <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
       </header>
 
-      <form method="POST">
+      <form id="mcq-test-form" method="post" onsubmit="disableBeforeUnload();">
         {% csrf_token %}
 
         {% for question in questions %}
@@ -61,48 +61,202 @@
 
   <script src="{% static 'js/test.js' %}"></script>
   <script>
-    let currentIndex = 0;
-    const totalQuestions = {{ questions|length }};
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const questions = document.querySelectorAll('.question');
+        let currentQuestionIndex = 0;
+        let warningCount = 0;
+        const maxWarnings = 3;
+        let visibilityChangeCount = 0;
+        let isTestStarted = false;
 
-    function showQuestion(index) {
-      document.querySelectorAll('.question-box').forEach((box, i) => {
-        box.style.display = i === index ? 'block' : 'none';
-      });
-      currentIndex = index;
-    }
+        // ✅ Clear previous selections and timer when new exam starts
+        localStorage.removeItem("testEndTime");
+        document.querySelectorAll('input[type=radio]').forEach(radio => {
+            radio.checked = false;
+        });
 
-    function nextQuestion() {
-      if (currentIndex < totalQuestions - 1) {
-        showQuestion(currentIndex + 1);
-      }
-    }
-
-    function clearResponse() {
-      const radios = document.querySelectorAll(`#question-${currentIndex} input[type=radio]`);
-      radios.forEach(r => r.checked = false);
-    }
-    
-      document.addEventListener("keydown", function (e) {
-        if ((e.key === "F5") || 
-            (e.ctrlKey && e.key === "r") || 
-            (e.ctrlKey && e.key === "R")) {
-          e.preventDefault();
-          alert("❌ Refresh is disabled during the test.");
+        function showQuestion(index) {
+            questions.forEach((question, idx) => {
+                question.classList.remove('active');
+                if (idx === index) {
+                    question.classList.add('active');
+                }
+            });
+            updateQuestionIndicators(index);
+            document.getElementById('prev-btn').style.display = index === 0 ? 'none' : 'inline-block';
+            document.getElementById('next-btn').style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+            document.getElementById('submit-btn').style.display = index === questions.length - 1 ? 'inline-block' : 'none';
+            document.getElementById('review-btn').style.display = index === questions.length - 1 ? 'inline-block' : 'none';
         }
-      });
 
-      // Disable right-click menu
-      document.addEventListener("contextmenu", function (e) {
+        function updateQuestionIndicators(index) {
+            const indicators = document.querySelectorAll('.question-indicator');
+            indicators.forEach((indicator, idx) => {
+                indicator.classList.remove('bg-green-500', 'bg-yellow-500');
+                indicator.classList.add('bg-gray-400');
+                if (idx === index) {
+                    indicator.classList.remove('bg-gray-400');
+                    indicator.classList.add('bg-green-500');
+                }
+                const question = questions[idx];
+                const options = question.querySelectorAll('input[type="radio"]');
+                let answered = false;
+                options.forEach(option => {
+                    if (option.checked) {
+                        answered = true;
+                    }
+                });
+                if (answered) {
+                    indicator.classList.remove('bg-gray-400');
+                    indicator.classList.add('bg-green-500');
+                } else if (idx < currentQuestionIndex) {
+                    indicator.classList.remove('bg-gray-400');
+                    indicator.classList.add('bg-yellow-500');
+                }
+            });
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            }
+        });
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        });
+
+        document.getElementById('review-btn').addEventListener('click', () => {
+            showReview();
+        });
+
+        function showReview() {
+            const reviewContent = document.getElementById('reviewContent');
+            reviewContent.innerHTML = '';
+            questions.forEach((question, idx) => {
+                const questionText = question.querySelector('.question-text').innerText;
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                const answer = selectedOption ? selectedOption.value : 'Not answered';
+
+                reviewContent.innerHTML += `
+                    <div class="mb-4 p-4 border border-gray-300 rounded">
+                        <p class="font-bold">${idx + 1}. ${questionText}</p>
+                        <p class="italic">Your answer: ${answer}</p>
+                    </div>
+                `;
+            });
+            document.getElementById('reviewSection').classList.remove('hidden');
+        }
+
+        document.getElementById('closeReviewBtn').addEventListener('click', () => {
+            document.getElementById('reviewSection').classList.add('hidden');
+        });
+
+        // ✅ Submit confirmation alert
+       document.getElementById('mcq-test-form').addEventListener('submit', function (e) {
+    let confirmSubmit = confirm("⚠️ Are you sure you want to submit the test?");
+    if (!confirmSubmit) {
         e.preventDefault();
-      });
+    } else {
+        // ✅ Clear timer
+        localStorage.removeItem("testEndTime");
 
-      // Disable browser back button
-      history.pushState(null, null, location.href);
-      window.onpopstate = function () {
-        history.go(1);
-      };
-      
+        // ✅ Clear saved answers
+        document.querySelectorAll('input[type=radio]').forEach(radio => {
+            localStorage.removeItem(radio.name);
+            radio.checked = false;
+        });
+    }
+});
+
+
+        // Function to navigate to a specific question
+        const questionIndicators = document.querySelectorAll('.question-indicator');
+        questionIndicators.forEach((indicator, idx) => {
+            indicator.addEventListener('click', () => {
+                showQuestion(idx);
+            });
+        });
+
+        showQuestion(currentQuestionIndex);
+
+        // Warn before refreshing or closing the page
+        window.addEventListener('beforeunload', function (e) {
+            if (isTestStarted && currentQuestionIndex === 0) {
+                e.preventDefault();
+                e.returnValue = '';
+                return;
+            }
+            e.preventDefault();
+            e.returnValue = '';
+            if (isTestStarted && warningCount < maxWarnings) {
+                warningCount++;
+                return 'Warning ' + warningCount + ' of ' + maxWarnings + ': Are you sure you want to leave? Your answers will not be saved.';
+            } else if (isTestStarted) {
+                document.getElementById("mcq-test-form").submit();
+            }
+        });
+
+        // ✅ Timer with persistence (localStorage)
+        function startTimer(duration, display) {
+            let timer = duration;
+            let savedEndTime = localStorage.getItem("testEndTime");
+
+            if (savedEndTime) {
+                let remaining = Math.floor((savedEndTime - Date.now()) / 1000);
+                if (remaining > 0) {
+                    timer = remaining;
+                } else {
+                    document.getElementById("mcq-test-form").submit();
+                    return;
+                }
+            } else {
+                localStorage.setItem("testEndTime", Date.now() + duration * 1000);
+            }
+
+            var interval = setInterval(function () {
+                let minutes = parseInt(timer / 60, 10);
+                let seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    localStorage.removeItem("testEndTime");
+                    document.getElementById("mcq-test-form").submit();
+                }
+            }, 1000);
+        }
+
+        window.onload = function () {
+            var thirtyMinutes = 60 * 30; 
+            var display = document.querySelector('#time');
+            startTimer(thirtyMinutes, display);
+            isTestStarted = true; 
+        };
+
+        // Detect tab or window switch
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden' && isTestStarted) {
+                visibilityChangeCount++;
+                if (visibilityChangeCount > maxWarnings) {
+                    document.getElementById("mcq-test-form").submit();
+                } else {
+                    alert('Warning ' + visibilityChangeCount + ' of ' + maxWarnings + ': You switched tabs or minimized the window. Please return to continue the test.');
+                }
+            }
+        });
+
+    });
 </script>
+
 
 </body>
 </html>

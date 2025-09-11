@@ -1,35 +1,426 @@
-{% extends "dashboard.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock Test</title>
+  <link rel="stylesheet" href="{% static 'css/test.css' %}">
+  <style>
+    .question-grid button {
+      margin: 4px;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .question-grid button.answered {
+      background-color: lightgreen;
+    }
+    .question-grid button.review {
+      background-color: orange;
+    }
+    .question-grid button.unanswered {
+      background-color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
 
-{% block content %}
-   
-    <table>
-        <tr>
-            <td><img src="../static/images/technokraft-logo.png" alt="" style="height: 60px;"></td>
-            <td colspan="5"><h1>Medical Coding Mock Test</h1></td>
-        </tr>
-        <tr>
-            <td>Student Name  </td>
-            <td colspan="2 ">{{ student_name }}</td> 
-            <td colspan="2">Roll no</td>
-            <td>{{ roll_no }}   </td>
-        </tr>
-        <tr>
-            <td>Subject name</td>
-            <td>Min marks</td>
-            <td>Max marks</td>
-            <td>Marks obtained</td>
-            <td>Remark</td>
-        </tr>
-        <tr>
-            <td>SUB1</td>
-            <td>33</td>
-            <td>{{total}}</td>
-            <td>{{score}}</td>
-            <td>D</td>
-        </tr>
-    </table>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <img src="{% static 'images/technokraft-logo.png' %}" alt="Logo">
+      <p><strong>Choose a Question</strong></p>
+      <div class="question-grid">
+        {% for q in questions %}
+          <button type="button" onclick="showQuestion({{ forloop.counter0 }})">
+            {{ forloop.counter }}
+          </button>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <h1>Mock Test</h1>
+        <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
+      </header>
+
+      <form id="mcq-test-form" method="post" onsubmit="disableBeforeUnload();">
+        {% csrf_token %}
+
+        {% for question in questions %}
+        <div class="question-box" id="question-{{ forloop.counter0 }}" style="{% if not forloop.first %}display:none;{% endif %}">
+          <h3>Question No. {{ forloop.counter }}</h3>
+          <p>{{ question.question_text }}</p>
+
+          <!-- Answer Box -->
+          <div class="answer-box">
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}"> {{ question.option1 }}</label><br>
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}</label><br>
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}</label><br>
+            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option4 }}"> {{ question.option4 }}</label><br>
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button type="button" class="mark">Mark for Review & Next</button>
+          <button type="button" class="clear" onclick="clearResponse()">Clear Response</button>
+          <button type="button" class="save" onclick="saveAndNext()">Save & Next</button>
+          <button type="submit" class="submit">Submit</button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    let currentIndex = 0;
+    const totalQuestions = {{ questions|length }};
+    let time = 60 * 60; // 60 minutes
+
+    // Show question
+    function showQuestion(index) {
+      document.querySelectorAll('.question-box').forEach((box, i) => {
+        box.style.display = i === index ? 'block' : 'none';
+      });
+      currentIndex = index;
+    }
+
+    function nextQuestion() {
+      if (currentIndex < totalQuestions - 1) {
+        showQuestion(currentIndex + 1);
+      }
+    }
+
+    // Clear selected answer
+    function clearResponse() {
+      const radios = document.querySelectorAll(`#question-${currentIndex} input[type=radio]`);
+      radios.forEach(r => r.checked = false);
+      if (radios.length > 0) {
+        localStorage.removeItem(radios[0].name);
+      }
+      updateSidebarHighlight();
+    }
+
+    // Save & Next
+    function saveAndNext() {
+      updateSidebarHighlight();
+      nextQuestion();
+    }
+
+    // Mark for Review & Next
+    document.querySelector('.mark').addEventListener('click', function() {
+      const sidebarBtn = document.querySelectorAll('.question-grid button')[currentIndex];
+      sidebarBtn.classList.remove("answered", "unanswered");
+      sidebarBtn.classList.add("review");
+      nextQuestion();
+    });
+
+    // Highlight answered/unanswered question
+    function updateSidebarHighlight() {
+      const radios = document.querySelectorAll(`#question-${currentIndex} input[type=radio]`);
+      const sidebarBtn = document.querySelectorAll('.question-grid button')[currentIndex];
+      let answered = Array.from(radios).some(r => r.checked);
+
+      sidebarBtn.classList.remove("review");
+      if (answered) {
+        sidebarBtn.classList.add("answered");
+        sidebarBtn.classList.remove("unanswered");
+      } else {
+        sidebarBtn.classList.remove("answered");
+        sidebarBtn.classList.add("unanswered");
+      }
+    }
+
+    // Save answers in localStorage
+    document.querySelectorAll('input[type=radio]').forEach(radio => {
+      radio.addEventListener('change', function () {
+        localStorage.setItem(this.name, this.value);
+        updateSidebarHighlight();
+      });
+    });
+
+    // Restore answers on page load
+    window.addEventListener('load', function () {
+      document.querySelectorAll('input[type=radio]').forEach(radio => {
+        const savedValue = localStorage.getItem(radio.name);
+        if (savedValue && radio.value === savedValue) {
+          radio.checked = true;
+        }
+      });
+      document.querySelectorAll('.question-box').forEach((_, i) => {
+        currentIndex = i;
+        updateSidebarHighlight();
+      });
+      currentIndex = 0; // reset to first
+      showQuestion(0);
+    });
+
+    // Confirm before submit
+    document.querySelector('.submit').addEventListener('click', function(e) {
+      if (!confirm("Are you sure you want to submit the test?")) {
+        e.preventDefault();
+      }
+    });
+
+    // Countdown timer
+    function updateTimer() {
+      let minutes = Math.floor(time / 60);
+      let seconds = time % 60;
+      document.getElementById("timer").textContent =
+        `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+      if (time <= 0) {
+        document.getElementById("mcq-test-form").submit();
+      } else {
+        time--;
+      }
+    }
+    setInterval(updateTimer, 1000);
+
+    // Disable refresh
+    document.addEventListener("keydown", function (e) {
+      if ((e.key === "F5") || (e.ctrlKey && (e.key === "r" || e.key === "R"))) {
+        e.preventDefault();
+        alert("❌ Refresh is disabled during the test.");
+      }
+    });
+
+    // Disable right-click
+    document.addEventListener("contextmenu", e => e.preventDefault());
+
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+      history.go(1);
+    };
+
+    // Prevent tab switching (max 3 warnings)
+    document.addEventListener('DOMContentLoaded', () => {
+      let maxWarnings = 3;
+      let warningCount = 0;
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') {
+          warningCount++;
+          if (warningCount >= maxWarnings) {
+            alert("You switched tabs too many times. Test will be submitted.");
+            document.getElementById("mcq-test-form").submit();
+          } else {
+            alert("Warning " + warningCount + " of " + maxWarnings +
+                  ": Switching tabs is not allowed!");
+          }
+        }
+      });
+    });
+
+    // Clear answers & reset after submission
+    document.getElementById("mcq-test-form").addEventListener("submit", function() {
+      // Clear radios + localStorage
+      document.querySelectorAll('input[type=radio]').forEach(r => {
+        r.checked = false;
+        localStorage.removeItem(r.name);
+      });
+
+      // Reset sidebar
+      document.querySelectorAll('.question-grid button').forEach(btn => {
+        btn.classList.remove("answered", "review", "unanswered");
+      });
+
+      // Reset question index + timer
+      currentIndex = 0;
+      showQuestion(0);
+      time = 60 * 60;
+    });
+  </script>
+</body>
+</html>
 
 
-    <h2>Your Score: {{ score }} / {{ total }}</h2>
-    <a href="{% url 'review' %}">Review Answers</a>
-{% endblock %}
+import random
+from datetime import date
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Question, Student
+from django.shortcuts import render, redirect
+from .models import Student
+
+def student_login(request):
+    if request.method == "POST":
+        student_id = request.POST.get("name")
+        password = request.POST.get("password")
+
+        try:
+            # check if student exists
+            student = Student.objects.get(student_id=student_id, password=password)
+            # store student ID (primary key) in session
+            request.session['student_id'] = student.student_id   # ✅ store MCS001
+            return redirect("dashboard")  # ✅ use url name, not template
+        except Student.DoesNotExist:
+            return render(request, "login.html", {"error": "Invalid name or password"})
+
+    return render(request, "login.html")
+
+
+def student_dashboard(request):
+    student_id = request.session.get('student_id')
+    if not student_id:
+        return redirect("login")
+
+    student = get_object_or_404(Student, student_id=student_id)
+    return render(request, "dashboard.html", {"student": student})
+
+
+
+def student_logout(request):
+    try:
+        del request.session['student_id']
+    except KeyError:
+        pass
+    return redirect("login")
+
+
+def start_test(request):
+    if 'student_id' not in request.session:
+        return redirect("login")
+    return render(request, "start_test.html")
+
+
+
+from .models import Question, Student, TestResult
+
+def mcq_test(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    selected_questions_ids = request.session.get('selected_questions')
+
+    if request.method == 'POST':
+        selected_questions = Question.objects.filter(id__in=selected_questions_ids)
+        score = 0
+        answers_review = []
+
+        # Store submitted answers in session
+        student_answers = request.session.get('student_answers', {})
+
+        for question in selected_questions:
+            selected_option = request.POST.get(f'question_{question.id}')
+            if selected_option:
+                student_answers[str(question.id)] = selected_option  # store as string keys
+            is_correct = selected_option == question.correct_answer
+            if is_correct:
+                score += 1
+
+            answers_review.append({
+                'id': question.id,
+                'question_text': question.question_text,
+                'options': [question.option1, question.option2, question.option3, question.option4],
+                'selected_option': selected_option,
+                'correct_answer': question.correct_answer,
+                'is_correct': is_correct,
+            })
+
+        request.session['student_answers'] = student_answers  # ✅ save current answers
+        request.session['score'] = score
+        request.session['total_questions'] = len(selected_questions)
+        request.session['answers_review'] = answers_review  
+
+        # Save TestResult
+        studentid = request.session.get('student_id')
+        student = get_object_or_404(Student, student_id=studentid)
+        attempt_no = TestResult.objects.filter(student=student).count() + 1
+
+        TestResult.objects.create(
+            student=student,
+            score=score,
+            total_questions=len(selected_questions),
+            attempt_no=attempt_no
+        )
+
+        return redirect('result')
+
+    else:
+        if not selected_questions_ids:
+            questions = list(Question.objects.all())
+            random.shuffle(questions)
+            selected_questions = questions[:30]
+            selected_questions_ids = [q.id for q in selected_questions]
+            request.session['selected_questions'] = selected_questions_ids
+        else:
+            selected_questions = Question.objects.filter(id__in=selected_questions_ids)
+
+    # Get previously selected answers to pre-fill form
+    student_answers = request.session.get('student_answers', {})
+
+    context = {
+        'questions': selected_questions,
+        'student_answers': student_answers
+    }
+    return render(request, 'test.html', context)
+
+
+
+
+def result(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    studentid = request.session['student_id']
+    student = Student.objects.filter(student_id=studentid).first()
+    if not student:
+        return render(request, "result.html", {"error": f"No student found with ID {studentid}"})
+
+    score = request.session.get('score', 0)
+    total = request.session.get('total_questions', 0)
+    answers_review = request.session.get('answers_review', [])
+    
+    # Calculate percentage
+    percentage = (score / total * 100) if total > 0 else 0
+
+    return render(request, 'result.html', {
+        'student_id': student.student_id,
+        'firstname': student.firstname,
+        'lastname': student.lastname,
+        'score': score,
+        'total': total,
+        'total_questions': total,       # needed for template
+        'percentage': round(percentage, 2),
+        'answers_review': answers_review,
+        'test_date': date.today().strftime("%d-%m-%Y"),  # today’s date
+    })
+
+def test_history(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    studentid = request.session['student_id']
+    student = get_object_or_404(Student, student_id=studentid)
+
+    results = TestResult.objects.filter(student=student).order_by('-date_taken')
+
+    return render(request, "test_history.html", {"student": student, "results": results})
+
+
+def review(request):
+    answers = request.session.get("answers_review", [])  # ✅ fixed name
+    score = request.session.get("score", 0)
+    total = request.session.get("total_questions", 0)   # ✅ fixed name
+
+    return render(request, "review.html", {
+        "answers": answers,
+        "score": score,
+        "total": total
+    })
+
+
+
+
+
+
+
+
+
+
+

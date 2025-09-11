@@ -1,20 +1,38 @@
 {% extends "dashboard.html" %}
 
 {% block content %}
-<div class="test-info">
-    <h2>Mock Test</h2>
-    <p><strong>Subject:</strong> Medical Coding</p>
-    <p><strong>Total Questions:</strong> 30</p>
-    <p><strong>Time Limit:</strong> 60 minutes</p>
-    <p><strong>Instructions:</strong></p>
-    <ul>
-        <li>Each question carries 1 mark.</li>
-        <li>No negative marking.</li>
-        <li>Do not refresh the page during the test.</li>
-    </ul>
 
-    <form method="get" action="{% url 'mcq_test' %}">
-        <button type="submit" class="btn btn-primary">Start Test</button>
-    </form>
+<div class="container mt-4">
+    <h2 class="mb-4">Mock Tests</h2>
+    <div class="row">
+        {% for subject in subjects %}
+        <div class="col-md-6 mb-4" style="margin-top: 20px;">
+            <div class="test-info p-3 border rounded shadow-sm">
+                <h2>Mock Test</h2>
+                <p><strong>Subject:</strong> {{ subject.name }}</p>
+                <p><strong>Total Questions:</strong> 30</p>
+                <p><strong>Time Limit:</strong> 60 minutes</p>
+                <p><strong>Instructions:</strong></p>
+                <ul>
+                    <li>Each question carries 1 mark.</li>
+                    <li>No negative marking.</li>
+                    <li>Do not refresh the page during the test.</li>
+                </ul>
+
+                <form method="get" action="{% url 'mcq_test' %}" onsubmit="return confirmStart();">
+                    <input type="hidden" name="subject_name" value="{{ subject.name }}">
+                    <button type="submit" class="btn btn-primary">Start Test</button>
+                </form>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+    function confirmStart() {
+        return confirm("⚠️ Are you sure you want to start the test?\n\nThe timer will begin once you confirm.");
+    }
+</script>
 {% endblock %}

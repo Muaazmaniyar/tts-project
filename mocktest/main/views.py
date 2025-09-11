@@ -1,7 +1,8 @@
+from .models import Question, Student, TestResult,Subject
 import random
-from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Question, Student
+from .models import Question, Student, TestResult
+from datetime import date
 from django.shortcuts import render, redirect
 from .models import Student
 
@@ -43,28 +44,29 @@ def student_logout(request):
 def start_test(request):
     if 'student_id' not in request.session:
         return redirect("login")
-    return render(request, "start_test.html")
+    else:
+        subjects = Subject.objects.all()
+    return render(request, "start_test.html", {"subjects": subjects})
 
-
-
-from .models import Question, Student, TestResult
 
 def mcq_test(request):
     if 'student_id' not in request.session:
         return redirect('login')
 
+    selected_questions_ids = request.session.get('selected_questions')
+
     if request.method == 'POST':
-        selected_questions_ids = request.session.get('selected_questions')
-        if not selected_questions_ids:
-            return redirect('mcq_test')
-
         selected_questions = Question.objects.filter(id__in=selected_questions_ids)
-
         score = 0
         answers_review = []
 
+        # Store submitted answers in session
+        student_answers = request.session.get('student_answers', {})
+
         for question in selected_questions:
             selected_option = request.POST.get(f'question_{question.id}')
+            if selected_option:
+                student_answers[str(question.id)] = selected_option  # store as string keys
             is_correct = selected_option == question.correct_answer
             if is_correct:
                 score += 1
@@ -78,15 +80,16 @@ def mcq_test(request):
                 'is_correct': is_correct,
             })
 
-        # Get student
+        request.session['student_answers'] = student_answers  # ✅ save current answers
+        request.session['score'] = score
+        request.session['total_questions'] = len(selected_questions)
+        request.session['answers_review'] = answers_review  
+
+        # Save TestResult in DB
         studentid = request.session.get('student_id')
         student = get_object_or_404(Student, student_id=studentid)
+        attempt_no = TestResult.objects.filter(student=student).count() + 1
 
-        # Count previous attempts
-        previous_attempts = TestResult.objects.filter(student=student).count()
-        attempt_no = previous_attempts + 1
-
-        # Save new attempt in TestResult
         TestResult.objects.create(
             student=student,
             score=score,
@@ -94,22 +97,61 @@ def mcq_test(request):
             attempt_no=attempt_no
         )
 
-        # Store for review page
-        request.session['score'] = score
-        request.session['total_questions'] = len(selected_questions)
-        request.session['answers_review'] = answers_review  
+        if 'selected_questions' in request.session:
+            del request.session['selected_questions']
+        if 'student_answers' in request.session:
+            del request.session['student_answers']
 
-        return redirect('review')
+        return redirect('result')
 
     else:
-        questions = list(Question.objects.all())
-        random.shuffle(questions)
-        selected_questions = questions[:30]
-        selected_questions_ids = [q.id for q in selected_questions]
-        request.session['selected_questions'] = selected_questions_ids
+        # Generate new set of random questions if no session data exists
+        if not selected_questions_ids:
+            questions = list(Question.objects.all())
+            random.shuffle(questions)
+            selected_questions = questions[:30]  # Pick 30 random questions
+            selected_questions_ids = [q.id for q in selected_questions]
+            request.session['selected_questions'] = selected_questions_ids
+        else:
+            selected_questions = Question.objects.filter(id__in=selected_questions_ids)
 
-    context = {'questions': selected_questions}
+    # Get previously selected answers (only if test not yet submitted)
+    student_answers = request.session.get('student_answers', {})
+
+    context = {
+        'questions': selected_questions,
+        'student_answers': student_answers
+    }
     return render(request, 'test.html', context)
+
+
+def submit_test(request):
+    if request.method == "POST":
+        student_id = request.session.get("student_id")
+        student = Student.objects.get(student_id=student_id)
+
+        # Save student answers and score
+        answers = request.POST
+        score = 0
+        total = 0
+        for key, value in answers.items():
+            if key.startswith("question_"):
+                qid = int(key.split("_")[1])
+                question = Question.objects.get(id=qid)
+                total += 1
+                if question.answer == value:
+                    score += 1
+
+        # Save result
+        TestResult.objects.create(
+            student=student,
+            score=score,
+            total=total,
+            date=date.today()
+        )
+
+        # Redirect to new test instead of result
+        return redirect("start_test")
 
 
 
