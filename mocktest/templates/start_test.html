@@ -2,17 +2,45 @@
 
 {% block content %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/mocktest.css' %}">
+<link rel="stylesheet" href="{% static 'css/start_test.css' %}">
+<style>
+    /* Add bigger gap between each mock test box */
+.mocktest-box {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 20px; /* extra bottom gap */
+}
 
-<div class="container mt-5">
+.mocktest-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.1);
+}
+
+.btn-gradient {
+    background: linear-gradient(90deg, #007bff, #00c6ff);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    transition: 0.3s;
+}
+
+.btn-gradient:hover {
+    opacity: 0.9;
+}
+
+</style>
+
+<div class="container py-5">
+    <!-- Section Heading -->
     <h2 class="text-center fw-bold mb-5">📚 Mock Tests</h2>
 
     <div class="row g-4">
         {% for subject in subjects %}
         <div class="col-md-6 col-lg-4">
-            <div class="card shadow-lg border-0 h-100 rounded-4">
+            <!-- Individual Mock Test Box -->
+            <div class="mocktest-box card shadow-lg border-0 h-100 rounded-4">
                 <div class="card-body d-flex flex-column">
-                    <h4 class="fw-bold text-primary mb-3">Mock Test</h4>
+                    
+                    <h4 class="fw-bold text-primary mb-3">Mock Test {{ forloop.counter }}</h4>
 
                     <p><span class="fw-semibold">📖 Subject:</span> {{ subject.name }}</p>
                     <p><span class="fw-semibold">❓ Total Questions:</span> 30</p>
@@ -35,11 +63,13 @@
                 </div>
             </div>
         </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-muted">No subjects available for mock tests.</p>
+        </div>
         {% endfor %}
     </div>
 </div>
-
-
 
 <script>
     function confirmStart() {
