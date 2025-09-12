@@ -1,7 +1,5 @@
 from django.db import models
 
-from django.db import models
-
 class Student(models.Model):
     firstname = models.CharField(max_length=100, null=True, blank=True)
     lastname = models.CharField(max_length=100, null=True, blank=True)  
@@ -28,8 +26,8 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
-
 class Question(models.Model):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="questions")
     question_text = models.TextField()
     option1 = models.CharField(max_length=255)
     option2 = models.CharField(max_length=255)
@@ -38,10 +36,12 @@ class Question(models.Model):
     correct_answer = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.question_text[:50]
+        return f"{self.subject.name} - {self.question_text[:50]}"
+
 
 class TestResult(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     score = models.IntegerField()
     total_questions = models.IntegerField()
     date_taken = models.DateTimeField(auto_now_add=True)
@@ -49,3 +49,5 @@ class TestResult(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.subject} - {self.score}/{self.total_questions}"
+
+

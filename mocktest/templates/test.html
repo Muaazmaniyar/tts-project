@@ -2,261 +2,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mock Test</title>
-  <link rel="stylesheet" href="{% static 'css/test.css' %}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Test</title>
+<link rel="stylesheet" href="{% static 'css/test.css' %}">
+
+<style>
+  /* Sidebar buttons */
+  .question-grid button.active-question { background: #007bff; color: #fff; }
+  .question-grid button.answered { background: #28a745; color: #fff; }
+
+  /* Timer warning styles */
+  #timer.warning { color: orange; }
+  #timer.danger { color: red; animation: blink 1s infinite; }
+  @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+</style>
 </head>
 <body>
-  <div class="container">
+<div class="container">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <img src="{% static 'images/technokraft-logo.png' %}" alt="Logo">
-      <p><strong>Choose a Question</strong></p>
-      <div class="question-grid">
-        {% for q in questions %}
-          <button type="button" onclick="showQuestion({{ forloop.counter0 }})">
-            {{ forloop.counter }}
-          </button>
-        {% endfor %}
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <img src="{% static 'images/technokraft-logo.png' %}" alt="Logo">
+    <p><strong>Choose a Question</strong></p>
+    <div class="question-grid">
+      {% for q in questions %}
+      <button type="button" id="qbtn-{{ forloop.counter0 }}" data-answered="false"
+              onclick="goToQuestion({{ forloop.counter0 }})">
+        {{ forloop.counter }}
+      </button>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <h1>Mock Test</h1>
+      <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
+    </header>
+
+    <form id="mcq-test-form" method="post">
+      {% csrf_token %}
+      {% for question in questions %}
+      <div class="question" data-index="{{ forloop.counter0 }}" style="display:none;">
+        <div class="question-box">
+          <h3>Q{{ forloop.counter }}: {{ question.question_text }}</h3>
+        </div>
+        <div class="answer-box">
+          <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}"> {{ question.option1 }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}</label>
+          <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option4 }}"> {{ question.option4 }}</label>
+        </div>
       </div>
-    </aside>
+      {% endfor %}
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <header class="header">
-        <h1>Mock Test</h1>
-        <p><strong>Time Left:</strong> <span id="timer">60:00</span></p>
-      </header>
+      <div class="action-buttons">
+        <button type="button" id="prev-btn">Previous</button>
+        <button type="button" id="next-btn">Next</button>
+        <button type="submit" id="submit-btn">Submit Test</button>
+      </div>
+    </form>
+  </main>
+</div>
 
-      <form id="mcq-test-form" method="post" onsubmit="disableBeforeUnload();">
-        {% csrf_token %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const questions = document.querySelectorAll('.question');
+  let currentQuestionIndex = 0;
+  let timerInterval = null;
 
-        {% for question in questions %}
-        <div class="question-box" id="question-{{ forloop.counter0 }}" style="{% if not forloop.first %}display:none;{% endif %}">
-          <h3>Question No. {{ forloop.counter }}</h3>
-          <p>{{ question.question_text }}</p>
+  // ---------------- TIMER ----------------
+  function startTimer(durationInSeconds, display) {
+    let timer = durationInSeconds;
+    if (timerInterval) clearInterval(timerInterval);
 
-          <!-- Answer Box -->
-          <div class="answer-box">
-            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}"> {{ question.option1 }}</label><br>
-            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}"> {{ question.option2 }}</label><br>
-            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}"> {{ question.option3 }}</label><br>
-            <label><input type="radio" name="question_{{ question.id }}" value="{{ question.option4 }}"> {{ question.option4 }}</label><br>
-          </div>
-        </div>
-        {% endfor %}
+    timerInterval = setInterval(() => {
+      let minutes = Math.floor(timer / 60);
+      let seconds = timer % 60;
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button type="button" class="mark">Mark for Review & Next</button>
-          <button type="button" class="clear" onclick="clearResponse()">Clear Response</button>
-          <button type="button" class="save" onclick="nextQuestion()">Save & Next</button>
-          <button type="submit" class="submit">Submit</button>
-        </div>
-      </form>
-    </main>
-  </div>
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
 
-  <script src="{% static 'js/test.js' %}"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-        const questions = document.querySelectorAll('.question');
-        let currentQuestionIndex = 0;
-        let warningCount = 0;
-        const maxWarnings = 3;
-        let visibilityChangeCount = 0;
-        let isTestStarted = false;
+      display.textContent = minutes + ":" + seconds;
 
-        // ✅ Clear previous selections and timer when new exam starts
-        localStorage.removeItem("testEndTime");
-        document.querySelectorAll('input[type=radio]').forEach(radio => {
-            radio.checked = false;
-        });
+      if (timer <= 60) display.classList.add('danger');
+      else if (timer <= 600) display.classList.add('warning');
 
-        function showQuestion(index) {
-            questions.forEach((question, idx) => {
-                question.classList.remove('active');
-                if (idx === index) {
-                    question.classList.add('active');
-                }
-            });
-            updateQuestionIndicators(index);
-            document.getElementById('prev-btn').style.display = index === 0 ? 'none' : 'inline-block';
-            document.getElementById('next-btn').style.display = index === questions.length - 1 ? 'none' : 'inline-block';
-            document.getElementById('submit-btn').style.display = index === questions.length - 1 ? 'inline-block' : 'none';
-            document.getElementById('review-btn').style.display = index === questions.length - 1 ? 'inline-block' : 'none';
-        }
+      if (--timer < 0) {
+        clearInterval(timerInterval);
+        alert("Time is up! Submitting test...");
+        document.getElementById('mcq-test-form').submit();
+      }
+    }, 1000);
+  }
 
-        function updateQuestionIndicators(index) {
-            const indicators = document.querySelectorAll('.question-indicator');
-            indicators.forEach((indicator, idx) => {
-                indicator.classList.remove('bg-green-500', 'bg-yellow-500');
-                indicator.classList.add('bg-gray-400');
-                if (idx === index) {
-                    indicator.classList.remove('bg-gray-400');
-                    indicator.classList.add('bg-green-500');
-                }
-                const question = questions[idx];
-                const options = question.querySelectorAll('input[type="radio"]');
-                let answered = false;
-                options.forEach(option => {
-                    if (option.checked) {
-                        answered = true;
-                    }
-                });
-                if (answered) {
-                    indicator.classList.remove('bg-gray-400');
-                    indicator.classList.add('bg-green-500');
-                } else if (idx < currentQuestionIndex) {
-                    indicator.classList.remove('bg-gray-400');
-                    indicator.classList.add('bg-yellow-500');
-                }
-            });
-        }
+  const display = document.getElementById('timer');
+  startTimer(60 * 60, display); // 60 minutes
 
-        document.getElementById('next-btn').addEventListener('click', () => {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                showQuestion(currentQuestionIndex);
-            }
-        });
+  // ---------------- SHOW QUESTION ----------------
+  function showQuestion(index) {
+    currentQuestionIndex = index;
+    questions.forEach((q,i)=> q.style.display = (i===index)?"block":"none");
 
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                showQuestion(currentQuestionIndex);
-            }
-        });
-
-        document.getElementById('review-btn').addEventListener('click', () => {
-            showReview();
-        });
-
-        function showReview() {
-            const reviewContent = document.getElementById('reviewContent');
-            reviewContent.innerHTML = '';
-            questions.forEach((question, idx) => {
-                const questionText = question.querySelector('.question-text').innerText;
-                const selectedOption = question.querySelector('input[type="radio"]:checked');
-                const answer = selectedOption ? selectedOption.value : 'Not answered';
-
-                reviewContent.innerHTML += `
-                    <div class="mb-4 p-4 border border-gray-300 rounded">
-                        <p class="font-bold">${idx + 1}. ${questionText}</p>
-                        <p class="italic">Your answer: ${answer}</p>
-                    </div>
-                `;
-            });
-            document.getElementById('reviewSection').classList.remove('hidden');
-        }
-
-        document.getElementById('closeReviewBtn').addEventListener('click', () => {
-            document.getElementById('reviewSection').classList.add('hidden');
-        });
-
-        // ✅ Submit confirmation alert
-       document.getElementById('mcq-test-form').addEventListener('submit', function (e) {
-    let confirmSubmit = confirm("⚠️ Are you sure you want to submit the test?");
-    if (!confirmSubmit) {
-        e.preventDefault();
-    } else {
-        // ✅ Clear timer
-        localStorage.removeItem("testEndTime");
-
-        // ✅ Clear saved answers
-        document.querySelectorAll('input[type=radio]').forEach(radio => {
-            localStorage.removeItem(radio.name);
-            radio.checked = false;
-        });
-    }
-});
-
-
-        // Function to navigate to a specific question
-        const questionIndicators = document.querySelectorAll('.question-indicator');
-        questionIndicators.forEach((indicator, idx) => {
-            indicator.addEventListener('click', () => {
-                showQuestion(idx);
-            });
-        });
-
-        showQuestion(currentQuestionIndex);
-
-        // Warn before refreshing or closing the page
-        window.addEventListener('beforeunload', function (e) {
-            if (isTestStarted && currentQuestionIndex === 0) {
-                e.preventDefault();
-                e.returnValue = '';
-                return;
-            }
-            e.preventDefault();
-            e.returnValue = '';
-            if (isTestStarted && warningCount < maxWarnings) {
-                warningCount++;
-                return 'Warning ' + warningCount + ' of ' + maxWarnings + ': Are you sure you want to leave? Your answers will not be saved.';
-            } else if (isTestStarted) {
-                document.getElementById("mcq-test-form").submit();
-            }
-        });
-
-        // ✅ Timer with persistence (localStorage)
-        function startTimer(duration, display) {
-            let timer = duration;
-            let savedEndTime = localStorage.getItem("testEndTime");
-
-            if (savedEndTime) {
-                let remaining = Math.floor((savedEndTime - Date.now()) / 1000);
-                if (remaining > 0) {
-                    timer = remaining;
-                } else {
-                    document.getElementById("mcq-test-form").submit();
-                    return;
-                }
-            } else {
-                localStorage.setItem("testEndTime", Date.now() + duration * 1000);
-            }
-
-            var interval = setInterval(function () {
-                let minutes = parseInt(timer / 60, 10);
-                let seconds = parseInt(timer % 60, 10);
-
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
-
-                display.textContent = minutes + ":" + seconds;
-
-                if (--timer < 0) {
-                    clearInterval(interval);
-                    localStorage.removeItem("testEndTime");
-                    document.getElementById("mcq-test-form").submit();
-                }
-            }, 1000);
-        }
-
-        window.onload = function () {
-            var thirtyMinutes = 60 * 30; 
-            var display = document.querySelector('#time');
-            startTimer(thirtyMinutes, display);
-            isTestStarted = true; 
-        };
-
-        // Detect tab or window switch
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'hidden' && isTestStarted) {
-                visibilityChangeCount++;
-                if (visibilityChangeCount > maxWarnings) {
-                    document.getElementById("mcq-test-form").submit();
-                } else {
-                    alert('Warning ' + visibilityChangeCount + ' of ' + maxWarnings + ': You switched tabs or minimized the window. Please return to continue the test.');
-                }
-            }
-        });
-
+    document.querySelectorAll('.question-grid button').forEach((btn,i)=>{
+      btn.classList.remove('active-question');
+      if(btn.dataset.answered==="true") btn.classList.add('answered');
+      else btn.classList.remove('answered');
+      if(i===index) btn.classList.add('active-question'); // blue current
     });
+
+    document.getElementById('prev-btn').style.display = index===0?'none':'inline-block';
+    document.getElementById('next-btn').style.display = index===questions.length-1?'none':'inline-block';
+    document.getElementById('submit-btn').style.display = 'inline-block';
+  }
+
+  window.goToQuestion = function(index) {
+    currentQuestionIndex = index;
+    showQuestion(currentQuestionIndex);
+  }
+
+  // ---------------- TRACK ANSWERS ----------------
+  document.querySelectorAll('.question input[type=radio]').forEach(input=>{
+    input.addEventListener('change', ()=>{
+      const qIndex = parseInt(input.closest('.question').dataset.index);
+      const btn = document.getElementById('qbtn-'+qIndex);
+      btn.dataset.answered = "true";
+      if(qIndex!==currentQuestionIndex) btn.classList.add('answered');
+    });
+  });
+
+  // ---------------- NAVIGATION ----------------
+  document.getElementById('next-btn').addEventListener('click', ()=>{
+    if(currentQuestionIndex < questions.length-1) showQuestion(currentQuestionIndex+1);
+  });
+  document.getElementById('prev-btn').addEventListener('click', ()=>{
+    if(currentQuestionIndex >0) showQuestion(currentQuestionIndex-1);
+  });
+
+  // ---------------- SUBMIT ----------------
+  document.getElementById('mcq-test-form').addEventListener('submit', (e)=>{
+    if(!confirm("Submit your test?")) { e.preventDefault(); return; }
+
+    // reset sidebar
+    document.querySelectorAll('.question-grid button').forEach(btn=>{
+      btn.dataset.answered="false";
+      btn.classList.remove('answered','active-question');
+    });
+
+    // clear radio selections
+    document.querySelectorAll('.question input[type=radio]').forEach(r=>r.checked=false);
+
+    // reset timer
+    startTimer(60*60, display);
+
+    // show first question
+    currentQuestionIndex=0;
+    showQuestion(currentQuestionIndex);
+  });
+
+  // ---------------- INITIALIZE ----------------
+  showQuestion(currentQuestionIndex);
+});
 </script>
-
-
 </body>
 </html>

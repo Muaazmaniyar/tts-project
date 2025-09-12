@@ -164,3 +164,13 @@ img{height: 40px;width: 120px;}
 .action-buttons button:hover {
   transform: scale(1.08);  /* zoom effect */
 }
+/* Sidebar question buttons */
+.question-grid button.active-question {
+  background: #007bff;   /* blue */
+  color: #fff;
+}
+
+.question-grid button.answered {
+  background: #28a745;   /* green */
+  color: #fff;
+}

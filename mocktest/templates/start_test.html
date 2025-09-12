@@ -1,38 +1,26 @@
+
 {% extends "dashboard.html" %}
-
 {% block content %}
-
-<div class="container mt-4">
-    <h2 class="mb-4">Mock Tests</h2>
-    <div class="row">
-        {% for subject in subjects %}
-        <div class="col-md-6 mb-4" style="margin-top: 20px;">
-            <div class="test-info p-3 border rounded shadow-sm">
-                <h2>Mock Test</h2>
-                <p><strong>Subject:</strong> {{ subject.name }}</p>
-                <p><strong>Total Questions:</strong> 30</p>
-                <p><strong>Time Limit:</strong> 60 minutes</p>
-                <p><strong>Instructions:</strong></p>
-                <ul>
-                    <li>Each question carries 1 mark.</li>
-                    <li>No negative marking.</li>
-                    <li>Do not refresh the page during the test.</li>
-                </ul>
-
-                <form method="get" action="{% url 'mcq_test' %}" onsubmit="return confirmStart();">
-                    <input type="hidden" name="subject_name" value="{{ subject.name }}">
-                    <button type="submit" class="btn btn-primary">Start Test</button>
-                </form>
-
-            </div>
-        </div>
-        {% endfor %}
+    <div class="start-container">
+        <h1>Start Mock Test</h1>
+        <form method="post">
+            {% csrf_token %}
+            <label for="subject">Select Exam:</label><br>
+            <select name="subject" id="subject" required>
+                <option value="" disabled selected>-- Choose Subject --</option>
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                {% endfor %}
+            </select><br>
+            <button type="submit">Start Test</button>
+        </form>
     </div>
-</div>
-
-<script>
-    function confirmStart() {
-        return confirm("⚠️ Are you sure you want to start the test?\n\nThe timer will begin once you confirm.");
-    }
-</script>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; }
+        .start-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+        select, button { padding: 10px 15px; margin: 10px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
 {% endblock %}
+
