@@ -1,7 +1,6 @@
 from .models import  Student, Subject,Question, TestResult
 import random
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Student
 from datetime import date
 from django.shortcuts import render, redirect
 from .models import Student
@@ -54,117 +53,119 @@ def start_test(request):
     return render(request, 'start_test.html', {'subjects': subjects})
 
 
+from django.shortcuts import render, redirect, get_object_or_404
+from datetime import date
+from .models import Student, Subject, Question, TestResult
 
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Subject, Question
 
 def mcq_test(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    student = get_object_or_404(Student, student_id=request.session['student_id'])
     subjects = Subject.objects.all()
     selected_subject = request.GET.get('subject')
 
     if request.method == 'POST':
-        # ✅ Handle submitted answers
-        submitted_answers = {}
         score = 0
         total = 0
+        answers_review = []
+        selected_subject_obj = None
 
         for key, value in request.POST.items():
             if key.startswith("question_"):
                 qid = key.split("_")[1]
                 try:
                     question = Question.objects.get(id=qid)
-                    submitted_answers[qid] = value
+                    selected_subject_obj = question.subject
                     total += 1
-                    if value == question.correct_answer:
+                    correct = (value == question.correct_answer)
+                    if correct:
                         score += 1
+
+                    # ✅ Always add each answered question to review
+                    answers_review.append({
+                        "question": question.question_text,        # ✅ fixed field name
+                        "selected": value,
+                        "correct": question.correct_answer,
+                        "is_correct": correct,
+                    })
+
                 except Question.DoesNotExist:
                     continue
 
-        # ✅ Clear any old answers (fresh test next time)
-        if 'student_answers' in request.session:
-            del request.session['student_answers']
+        # ✅ Save test result if we found a subject
+        if selected_subject_obj:
+            TestResult.objects.create(
+                student=student,
+                subject=selected_subject_obj,
+                score=score,
+                total_questions=total,
+                attempt_no=TestResult.objects.filter(student=student, subject=selected_subject_obj).count() + 1
+            )
 
-        return render(request, 'result.html', {
-            'score': score,
-            'total': total,
-            'submitted_answers': submitted_answers,
-        })
+        # ✅ Always set session values
+        request.session['score'] = score
+        request.session['total_questions'] = total
+        request.session['answers_review'] = answers_review
+        request.session['selected_subject'] = selected_subject
+        request.session.modified = True
 
-    # ✅ GET: Show exam with random 30 questions
+        return redirect("result")
+
+    # ✅ GET: Show random 30 questions
+    questions = []
     if selected_subject:
         questions = Question.objects.filter(subject__name=selected_subject).order_by("?")[:30]
-    else:
-        questions = []
 
-    # ✅ Ensure no old answers remain
-    request.session['student_answers'] = {}
-
-    context = {
+    return render(request, 'test.html', {
         'subjects': subjects,
         'questions': questions,
-        'selected_subject': selected_subject
-    }
-    return render(request, 'test.html', context)
+        'selected_subject': selected_subject,
+    })
 
 
 
 def submit_test(request):
+    """Optional if you want a separate submit URL — 
+       but mcq_test already handles POST correctly."""
     if request.method == "POST":
-        student_id = request.session.get("student_id")
-        student = Student.objects.get(student_id=student_id)
-
-        # Save student answers and score
-        answers = request.POST
-        score = 0
-        total = 0
-        for key, value in answers.items():
-            if key.startswith("question_"):
-                qid = int(key.split("_")[1])
-                question = Question.objects.get(id=qid)
-                total += 1
-                if question.answer == value:
-                    score += 1
-
-        # Save result
-        TestResult.objects.create(
-            student=student,
-            score=score,
-            total=total,
-            date=date.today()
-        )
-
-        # Redirect to new test instead of result
-        return redirect("start_test")
+        return mcq_test(request)   # reuse same logic
+    return redirect("dashboard")
 
 
+from django.shortcuts import render, redirect
+from datetime import date
+from .models import Student
 
 def result(request):
     if 'student_id' not in request.session:
         return redirect('login')
-
     studentid = request.session['student_id']
     student = Student.objects.filter(student_id=studentid).first()
     if not student:
         return render(request, "result.html", {"error": f"No student found with ID {studentid}"})
 
-    score = request.session.get('score', 0)
-    total = request.session.get('total_questions', 0)
+    score = int(request.session.get('score', 0))
+    print("Score from session:", score)  # Debugging line
+    total = int(request.session.get('total_questions', 0))
     answers_review = request.session.get('answers_review', [])
-    
-    # Calculate percentage
-    percentage = (score / total * 100) if total > 0 else 0
-
-    return render(request, 'result.html', {
+    selected_subject = request.session.get('selected_subject', "N/A")
+    percentage = (score / 30 * 100) if total > 0 else 0
+    context = {
         'student_id': student.student_id,
         'firstname': student.firstname,
         'lastname': student.lastname,
         'score': score,
         'total': total,
-        'total_questions': total,       # needed for template
         'percentage': round(percentage, 2),
         'answers_review': answers_review,
-        'test_date': date.today().strftime("%d-%m-%Y"),  # today’s date
-    })
+        'test_date': date.today().strftime("%d-%m-%Y"),
+        'subject': selected_subject,
+    }
+    return render(request, 'result.html', context)
+
+
 
 def test_history(request):
     if 'student_id' not in request.session:
@@ -179,6 +180,7 @@ def test_history(request):
 
 
 def review(request):
+    
     answers = request.session.get("answers_review", [])  # ✅ fixed name
     score = request.session.get("score", 0)
     total = request.session.get("total_questions", 0)   # ✅ fixed name

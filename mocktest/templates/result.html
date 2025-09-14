@@ -22,38 +22,44 @@
             <td>{{ student_id }}</td>
         </tr>
         <tr>
+            <td><strong>Subject:</strong></td>
+            <td>{{ subject }}</td>
             <td><strong>Test Date:</strong></td>
             <td>{{ test_date }}</td>
+        </tr>
+        <tr>
             <td><strong>Total Questions:</strong></td>
+            <td>30</td>
+            <td><strong>Total Questions Attempted:</strong></td>
             <td>{{ total }}</td>
+        </tr>
+        <tr>
+            
+            <td colspan="2"><strong>Score:</strong></td>
+            <td colspan="2">{{ score }}</td>
         </tr>
     </table>
 
     <div style="text-align: center; margin-bottom: 20px;">
         <h3 style="margin: 0;">Your Score: 
-            <span style="color: green;">{{ score }}</span> / {{ total_questions }}
+            <span style="color: green;">{{ score }}</span> / 30
         </h3>
         <p>Percentage: <strong>{{ percentage }}%</strong></p>
         <p>Result: 
-            {% if percentage >= 50 %}
+            {% if percentage >= 40 %}
                 <span style="color: green; font-weight: bold;">PASS</span>
             {% else %}
                 <span style="color: red; font-weight: bold;">FAIL</span>
             {% endif %}
         </p>
-    <button type="button" class="btn btn-primary" onclick="window.location.href='{% url 'review' %}'">
-    Exam Summary
-</button>
-
-
+        <button type="button" class="btn btn-primary" onclick="window.location.href='{% url 'review' %}'">
+            Exam Summary
+        </button>
     </div>
 
     <div style="text-align: center; margin-top: 20px;">
         <p>Technokraft Institute of Medical Coding</p>
         <p style="font-size: 12px; color: gray;">This is a system-generated result, no signature required.</p>
-        <script>
-            console.log("DEBUG student:", "{{ student.firstname }}", "{{ student.lastname }}", "{{ student.student_id }}");
-        </script>
     </div>
 </div>
 {% endblock %}

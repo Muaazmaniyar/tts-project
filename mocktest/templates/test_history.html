@@ -5,6 +5,7 @@
 <table border="1">
     <tr>
         <th>Attempt</th>
+        <th>Subject</th>
         <th>Score</th>
         <th>Total</th>
         <th>Date</th>
@@ -12,6 +13,7 @@
     {% for r in results %}
     <tr>
         <td>{{ r.attempt_no }}</td>
+        <td>{{ r.subject }}</td>
         <td>{{ r.score }}</td>
         <td>{{ r.total_questions }}</td>
         <td>{{ r.date_taken|date:"d M Y H:i" }}</td>

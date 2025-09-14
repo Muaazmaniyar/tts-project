@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const qIndex = parseInt(input.closest('.question').dataset.index);
       const btn = document.getElementById('qbtn-'+qIndex);
       btn.dataset.answered = "true";
-      if(qIndex!==currentQuestionIndex) btn.classList.add('answered');
+      btn.classList.add('answered');
     });
   });
 
@@ -143,23 +143,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------------- SUBMIT ----------------
   document.getElementById('mcq-test-form').addEventListener('submit', (e)=>{
-    if(!confirm("Submit your test?")) { e.preventDefault(); return; }
-
-    // reset sidebar
-    document.querySelectorAll('.question-grid button').forEach(btn=>{
-      btn.dataset.answered="false";
-      btn.classList.remove('answered','active-question');
-    });
-
-    // clear radio selections
-    document.querySelectorAll('.question input[type=radio]').forEach(r=>r.checked=false);
-
-    // reset timer
-    startTimer(60*60, display);
-
-    // show first question
-    currentQuestionIndex=0;
-    showQuestion(currentQuestionIndex);
+    if(!confirm("Submit your test?")) {
+        e.preventDefault();
+        return;
+    }
+    // ✅ Do NOT clear answers or restart timer here
+    // Let the form submit normally to the server
   });
 
   // ---------------- INITIALIZE ----------------

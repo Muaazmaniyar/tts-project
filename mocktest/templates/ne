@@ -424,3 +424,33 @@ def review(request):
 
 
 
+{% extends "dashboard.html" %}
+
+{% block content %}
+<div class="container">
+  <h2>Test Result</h2>
+
+  <p><strong>Student ID:</strong> {{ student_id }}</p>
+  <p><strong>Name:</strong> {{ firstname }} {{ lastname }}</p>
+  <p><strong>Subject:</strong> {{ subject }}</p>
+  <p><strong>Date:</strong> {{ test_date }}</p>
+
+  <h3>Score: {{ score }} / {{ total_questions }}</h3>
+  <p>Percentage: {{ percentage }}%</p>
+
+  <hr>
+  <h3>Answer Review</h3>
+  <ul>
+    {% for ans in answers_review %}
+      <li>
+        <strong>{{ ans.question }}</strong><br>
+        Your answer: <span style="color: {% if ans.is_correct %}green{% else %}red{% endif %}">
+          {{ ans.selected }}
+        </span><br>
+        Correct answer: {{ ans.correct }}
+      </li>
+      <br>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
