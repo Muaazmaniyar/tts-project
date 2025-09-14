@@ -1,6 +1,5 @@
 {% load static %}
 <!DOCTYPE html>
-<!-- Coding By CodingNepal - codingnepalweb.com -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,6 +15,7 @@
     <!----===== Iconscout CSS ===== -->
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <title>Student Dashboard Panel</title>
+    
 </head>
 <body>
     <nav>
@@ -27,31 +27,34 @@
         </div>
         <div class="menu-items">
             <ul class="nav-links">
-                <!-- <li><a href="#">
-                    <i class="uil uil-estate"></i>
-<<<<<<< HEAD
+               
+                <li>
+                <a href="{% url 'student_progress' %}" {% if active_page == 'dashboard' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
+                    <i class="uil uil-files-landscapes"></i>
                     <span class="link-name">Dashboard</span>
-                </a></li>
-=======
-                    <span class="link-name">Dahsboard</span>
-                </a></li> -->
+                </a>
+            </li>
 
-                <li><a href="{% url 'start_test' %}">
+            <li>
+                <a href="{% url 'start_test' %}" {% if active_page == 'start_test' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
                     <i class="uil uil-files-landscapes"></i>
                     <span class="link-name">Exam</span>
-                    </a>
-                </li>
+                </a>
+            </li>
 
-                <li><a href="{% url 'result' %}">
+            <li>
+                <a href="{% url 'result' %}" {% if active_page == 'result' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
                     <i class="uil uil-file-alt"></i>
                     <span class="link-name">Result</span>
-            </a></li>
+                </a>
+            </li>
 
-            <li><a href="{% url 'test_history' %}">
+            <li>
+                <a href="{% url 'test_history' %}" {% if active_page == 'history' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
                     <i class="uil uil-file-alt"></i>
                     <span class="link-name">Test History</span>
-            </a></li>
-
+                </a>
+            </li>
             </ul>
             
             <ul class="logout-mode">
@@ -68,13 +71,7 @@
     </nav>
     <section class="dashboard" style="height: 100vh;width: 1050px;">
         <div class="top">
-            <i class="uil uil-bars sidebar-toggle"></i>
-            <div class="search-box">
-                <i class="uil uil-search"></i>
-                <input type="text" placeholder="Search here...">
-            </div>
-            
-            <!--<img src="images/profile.jpg" alt="">-->
+            Welcome, {{ student.firstname }} {{ student.lastname }} ({{ student.student_id }})
         </div>
         <div class="dash-content">
             <div class="overview" style="width: 100%;">

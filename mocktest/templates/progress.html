@@ -1,0 +1,47 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<h2>Progress Chart</h2>
+
+<form method="get">
+    <label>Select Subject:</label>
+    <select name="subject" onchange="this.form.submit()">
+        <option value="">--Select--</option>
+        {% for subj in subjects %}
+            <option value="{{ subj.id }}" {% if selected_subject and selected_subject.id == subj.id %}selected{% endif %}>{{ subj.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+{% if chart_data %}
+<canvas id="progressChart" style="width:500px; height:500px;"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('progressChart').getContext('2d');
+const data = {
+    labels: [{% for item in chart_data %}"{{ item.date }}",{% endfor %}],
+    datasets: [{
+        label: 'Score',
+        data: [{% for item in chart_data %}{{ item.score }},{% endfor %}],
+        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        tension: 0.3,
+        fill: true
+    }]
+};
+const config = {
+    type: 'line',
+    data: data,
+    options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true, max: 30 }
+        }
+    }
+};
+new Chart(ctx, config);
+</script>
+
+{% endif %}
+
+{% endblock %}

@@ -7,7 +7,9 @@
         <th>Attempt</th>
         <th>Subject</th>
         <th>Score</th>
-        <th>Total</th>
+        <th>Attempted</th>
+        <th>Total Questions</th>
+        <th>Remark</th>
         <th>Date</th>
     </tr>
     {% for r in results %}
@@ -16,6 +18,14 @@
         <td>{{ r.subject }}</td>
         <td>{{ r.score }}</td>
         <td>{{ r.total_questions }}</td>
+        <td>30</td>
+        <td>
+            {% if r.score >= 40 %}
+                <span style="color: green; font-weight: bold;">PASS</span>
+            {% else %}
+                <span style="color: red; font-weight: bold;">FAIL</span>
+            {% endif %}
+        </td>
         <td>{{ r.date_taken|date:"d M Y H:i" }}</td>
     </tr>
     {% endfor %}

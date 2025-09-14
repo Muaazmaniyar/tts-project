@@ -142,18 +142,44 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ---------------- SUBMIT ----------------
-  document.getElementById('mcq-test-form').addEventListener('submit', (e)=>{
+  const examForm = document.getElementById('mcq-test-form');
+  let examActive = true;  // 🔴 NEW
+  examForm.addEventListener('submit', (e)=>{
     if(!confirm("Submit your test?")) {
         e.preventDefault();
         return;
     }
-    // ✅ Do NOT clear answers or restart timer here
-    // Let the form submit normally to the server
+    examActive = false;  // 🔴 allow leaving after submit
+  });
+
+  // ---------------- TAB CHANGE RESTRICTION ---------------- 🔴 NEW
+  let tabChangeCount = 0;
+  document.addEventListener("visibilitychange", function () {
+      if (document.hidden && examActive) {
+          tabChangeCount++;
+          alert("⚠️ Warning: You switched tabs! Attempt " + tabChangeCount + " of 3");
+
+          if (tabChangeCount >= 3) {
+              alert("❌ You switched tabs 3 times. Exam will be auto-submitted.");
+              examActive = false;
+              examForm.submit();
+          }
+      }
+  });
+
+  // ---------------- PREVENT REFRESH / LEAVE ---------------- 🔴 NEW
+  window.addEventListener("beforeunload", function (e) {
+      if (examActive) {
+          e.preventDefault();
+          e.returnValue = "You cannot leave or refresh until you finish the exam!";
+          return "You cannot leave or refresh until you finish the exam!";
+      }
   });
 
   // ---------------- INITIALIZE ----------------
   showQuestion(currentQuestionIndex);
 });
 </script>
+
 </body>
 </html>

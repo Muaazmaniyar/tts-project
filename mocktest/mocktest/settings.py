@@ -131,3 +131,7 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# where to redirect unauthorized users
+LOGIN_URL = '/login/'          # or name via reverse_lazy('login') in code
+LOGIN_REDIRECT_URL = '/dashboard/'

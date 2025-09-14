@@ -28,7 +28,33 @@ def student_dashboard(request):
         return redirect("login")
 
     student = get_object_or_404(Student, student_id=student_id)
-    return render(request, "dashboard.html", {"student": student})
+
+    subjects = Subject.objects.all()
+    selected_subject_id = request.GET.get('subject')
+    selected_subject = None
+    chart_data = []
+
+    if selected_subject_id:
+        selected_subject = get_object_or_404(Subject, id=selected_subject_id)
+    elif subjects:
+        selected_subject = subjects.first()  # default subject
+
+    if selected_subject:
+        results = TestResult.objects.filter(student=student, subject=selected_subject).order_by('date_taken')
+        chart_data = [
+            {"date": r.date_taken.strftime("%d-%m-%Y"), "score": r.score, "total": r.total_questions}
+            for r in results
+        ]
+
+    context = {
+        "student": student,
+        "subjects": subjects,
+        "selected_subject": selected_subject,
+        "chart_data": chart_data,
+        "active_page": "dashboard",  # 👈 mark Dashboard active
+    }
+    return render(request, "dashboard.html", context)
+
 
 
 
@@ -48,15 +74,23 @@ def start_test(request):
         selected_subject_id = request.POST.get("subject")
         if selected_subject_id:
             subject = Subject.objects.get(id=selected_subject_id)
+
+            # 🔑 clear any old exam session data before starting new
+            for key in ["exam_start_time", "selected_questions", "score", "total_questions", "answers_review", "selected_subject"]:
+                request.session.pop(key, None)
+
             return redirect(f'/test/?subject={subject.name}')
     
-    return render(request, 'start_test.html', {'subjects': subjects})
+    return render(request, 'start_test.html', {'subjects': subjects, "active_page": "start_test"})
+
 
 
 from django.shortcuts import render, redirect, get_object_or_404
 from datetime import date
 from .models import Student, Subject, Question, TestResult
 
+
+from django.utils import timezone
 
 def mcq_test(request):
     if 'student_id' not in request.session:
@@ -65,6 +99,18 @@ def mcq_test(request):
     student = get_object_or_404(Student, student_id=request.session['student_id'])
     subjects = Subject.objects.all()
     selected_subject = request.GET.get('subject')
+
+    exam_duration = 60 * 60  # 60 minutes
+
+    # ✅ Store exam start time once
+    if 'exam_start_time' not in request.session:
+        request.session['exam_start_time'] = timezone.now().isoformat()
+
+    start_time = timezone.datetime.fromisoformat(request.session['exam_start_time'])
+    elapsed = (timezone.now() - start_time).total_seconds()
+    remaining_time = exam_duration - int(elapsed)
+    if remaining_time <= 0:
+        return redirect("result")
 
     if request.method == 'POST':
         score = 0
@@ -83,9 +129,8 @@ def mcq_test(request):
                     if correct:
                         score += 1
 
-                    # ✅ Always add each answered question to review
                     answers_review.append({
-                        "question": question.question_text,        # ✅ fixed field name
+                        "question": question.question_text,
                         "selected": value,
                         "correct": question.correct_answer,
                         "is_correct": correct,
@@ -94,7 +139,6 @@ def mcq_test(request):
                 except Question.DoesNotExist:
                     continue
 
-        # ✅ Save test result if we found a subject
         if selected_subject_obj:
             TestResult.objects.create(
                 student=student,
@@ -104,25 +148,42 @@ def mcq_test(request):
                 attempt_no=TestResult.objects.filter(student=student, subject=selected_subject_obj).count() + 1
             )
 
-        # ✅ Always set session values
         request.session['score'] = score
         request.session['total_questions'] = total
         request.session['answers_review'] = answers_review
         request.session['selected_subject'] = selected_subject
-        request.session.modified = True
 
+        # ✅ Clear session so new exam starts fresh
+        request.session.pop('exam_start_time', None)
+        request.session.pop('selected_questions', None)
+
+        request.session.modified = True
         return redirect("result")
 
-    # ✅ GET: Show random 30 questions
+    # ✅ GET: Keep same 30 questions until exam ends
     questions = []
     if selected_subject:
-        questions = Question.objects.filter(subject__name=selected_subject).order_by("?")[:30]
+        if 'selected_questions' not in request.session:
+            # Pick random once and save IDs
+            selected_ids = list(
+                Question.objects.filter(subject__name=selected_subject)
+                .order_by("?")
+                .values_list("id", flat=True)[:30]
+            )
+            request.session['selected_questions'] = selected_ids
+            request.session.modified = True
+        else:
+            selected_ids = request.session['selected_questions']
+
+        questions = Question.objects.filter(id__in=selected_ids)
 
     return render(request, 'test.html', {
         'subjects': subjects,
         'questions': questions,
         'selected_subject': selected_subject,
+        'remaining_time': remaining_time,
     })
+
 
 
 
@@ -162,6 +223,7 @@ def result(request):
         'answers_review': answers_review,
         'test_date': date.today().strftime("%d-%m-%Y"),
         'subject': selected_subject,
+        "active_page": "result",
     }
     return render(request, 'result.html', context)
 
@@ -176,7 +238,7 @@ def test_history(request):
 
     results = TestResult.objects.filter(student=student).order_by('-date_taken')
 
-    return render(request, "test_history.html", {"student": student, "results": results})
+    return render(request, "test_history.html", {"student": student, "results": results, "active_page": "history"})
 
 
 def review(request):
@@ -195,3 +257,37 @@ def review(request):
 
 
 
+def student_progress(request):
+    if 'student_id' not in request.session:
+        return redirect('login')
+
+    student = get_object_or_404(Student, student_id=request.session['student_id'])
+    subjects = Subject.objects.all()  # to let student select a subject
+
+    selected_subject_id = request.GET.get('subject')
+    selected_subject = None
+    chart_data = []
+
+    if selected_subject_id:
+        selected_subject = get_object_or_404(Subject, id=selected_subject_id)
+        # Fetch student's results for that subject
+        results = TestResult.objects.filter(student=student, subject=selected_subject).order_by('date_taken')
+
+        # Prepare data for Chart.js
+        chart_data = [
+            {
+                "date": result.date_taken.strftime("%d-%m-%Y"),
+                "score": result.score,
+                "total": result.total_questions
+            }
+            for result in results
+        ]
+
+    context = {
+        "student": student,
+        "subjects": subjects,
+        "selected_subject": selected_subject,
+        "chart_data": chart_data,
+        "active_page": "dashboard",  # 👈 mark Dashboard active
+    }
+    return render(request, "progress.html", context)

@@ -11,5 +11,7 @@ urlpatterns = [
     path('review/', views.review, name='review'),
     path('dashboard/', views.student_dashboard, name='dashboard'),
     path('test_history/', views.test_history, name='test_history'),
+    path('progress/', views.student_progress, name='student_progress'),
+
        # new route
 ]
