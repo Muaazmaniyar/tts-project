@@ -24,10 +24,8 @@ def load_questions_from_csv():
             print(f"📄 Loading file: {filename}...")
 
             file_path = os.path.join(fixtures_dir, filename)
-            # ✅ Use utf-8-sig encoding
             with open(file_path, newline='', encoding='utf-8-sig') as csvfile:
                 reader = csv.DictReader(csvfile)
-                # Normalize headers: strip spaces & lowercase
                 reader.fieldnames = [f.strip().lower() for f in reader.fieldnames]
 
                 count = 0
@@ -35,7 +33,7 @@ def load_questions_from_csv():
                     if not row.get('question'):
                         continue
 
-                    # Skip duplicates
+                    
                     if Question.objects.filter(subject=subject, question_text=row['question']).exists():
                         continue
 

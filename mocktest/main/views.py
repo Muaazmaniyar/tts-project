@@ -11,11 +11,11 @@ def student_login(request):
         password = request.POST.get("password")
 
         try:
-            # check if student exists
+           
             student = Student.objects.get(student_id=student_id, password=password)
-            # store student ID (primary key) in session
-            request.session['student_id'] = student.student_id   # ✅ store MCS001
-            return redirect("dashboard")  # ✅ use url name, not template
+           
+            request.session['student_id'] = student.student_id   
+            return redirect("dashboard")  
         except Student.DoesNotExist:
             return render(request, "login.html", {"error": "Invalid name or password"})
 
@@ -37,7 +37,7 @@ def student_dashboard(request):
     if selected_subject_id:
         selected_subject = get_object_or_404(Subject, id=selected_subject_id)
     elif subjects:
-        selected_subject = subjects.first()  # default subject
+        selected_subject = subjects.first()  
 
     if selected_subject:
         results = TestResult.objects.filter(student=student, subject=selected_subject).order_by('date_taken')
@@ -51,7 +51,7 @@ def student_dashboard(request):
         "subjects": subjects,
         "selected_subject": selected_subject,
         "chart_data": chart_data,
-        "active_page": "dashboard",  # 👈 mark Dashboard active
+        "active_page": "dashboard",
     }
     return render(request, "progress.html", context)
 
@@ -68,14 +68,14 @@ def student_logout(request):
 
 
 def start_test(request):
-    subjects = Subject.objects.all()  # Get all available subjects
+    subjects = Subject.objects.all()
 
     if request.method == "POST":
         selected_subject_id = request.POST.get("subject")
         if selected_subject_id:
             subject = Subject.objects.get(id=selected_subject_id)
 
-            # 🔑 clear any old exam session data before starting new
+           
             for key in ["exam_start_time", "selected_questions", "score", "total_questions", "answers_review", "selected_subject"]:
                 request.session.pop(key, None)
 
@@ -100,9 +100,8 @@ def mcq_test(request):
     subjects = Subject.objects.all()
     selected_subject = request.GET.get('subject')
 
-    exam_duration = 60 * 60  # 60 minutes
+    exam_duration = 60 * 60 
 
-    # ✅ Store exam start time once
     if 'exam_start_time' not in request.session:
         request.session['exam_start_time'] = timezone.now().isoformat()
 
@@ -153,18 +152,17 @@ def mcq_test(request):
         request.session['answers_review'] = answers_review
         request.session['selected_subject'] = selected_subject
 
-        # ✅ Clear session so new exam starts fresh
         request.session.pop('exam_start_time', None)
         request.session.pop('selected_questions', None)
 
         request.session.modified = True
         return redirect("result")
 
-    # ✅ GET: Keep same 30 questions until exam ends
+    
     questions = []
     if selected_subject:
         if 'selected_questions' not in request.session:
-            # Pick random once and save IDs
+            
             selected_ids = list(
                 Question.objects.filter(subject__name=selected_subject)
                 .order_by("?")
@@ -191,7 +189,7 @@ def submit_test(request):
     """Optional if you want a separate submit URL — 
        but mcq_test already handles POST correctly."""
     if request.method == "POST":
-        return mcq_test(request)   # reuse same logic
+        return mcq_test(request)
     return redirect("dashboard")
 
 
@@ -208,7 +206,7 @@ def result(request):
         return render(request, "result.html", {"error": f"No student found with ID {studentid}"})
 
     score = int(request.session.get('score', 0))
-    print("Score from session:", score)  # Debugging line
+    print("Score from session:", score)  
     total = int(request.session.get('total_questions', 0))
     answers_review = request.session.get('answers_review', [])
     selected_subject = request.session.get('selected_subject', "N/A")
@@ -243,10 +241,9 @@ def test_history(request):
 
 def review(request):
     
-    answers = request.session.get("answers_review", [])  # ✅ fixed name
+    answers = request.session.get("answers_review", []) 
     score = request.session.get("score", 0)
-    total = request.session.get("total_questions", 0)   # ✅ fixed name
-
+    total = request.session.get("total_questions", 0)   
     return render(request, "review.html", {
         "answers": answers,
         "score": score,
@@ -262,7 +259,7 @@ def student_progress(request):
         return redirect('login')
 
     student = get_object_or_404(Student, student_id=request.session['student_id'])
-    subjects = Subject.objects.all()  # to let student select a subject
+    subjects = Subject.objects.all()  
 
     selected_subject_id = request.GET.get('subject')
     selected_subject = None
@@ -270,10 +267,8 @@ def student_progress(request):
 
     if selected_subject_id:
         selected_subject = get_object_or_404(Subject, id=selected_subject_id)
-        # Fetch student's results for that subject
         results = TestResult.objects.filter(student=student, subject=selected_subject).order_by('date_taken')
 
-        # Prepare data for Chart.js
         chart_data = [
             {
                 "date": result.date_taken.strftime("%d-%m-%Y"),
@@ -288,6 +283,6 @@ def student_progress(request):
         "subjects": subjects,
         "selected_subject": selected_subject,
         "chart_data": chart_data,
-        "active_page": "dashboard",  # 👈 mark Dashboard active
+        "active_page": "dashboard", 
     }
     return render(request, "progress.html", context)
