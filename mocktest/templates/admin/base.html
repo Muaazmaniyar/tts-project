@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!----======== CSS ======== -->
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/start_test.css' %}">
+    <link rel="stylesheet" href="{% static 'css/result.css' %}">
+
+     
+    <!----===== Iconscout CSS ===== -->
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <title>Admin Panel Dashboard</title>
+    
+</head>
+<body>
+    <nav>
+        <div class="logo-name">
+            <div class="logo-image">
+               <img src="../static/images/technokraft-logo.png" alt="">
+            </div>
+            
+        </div>
+        <div class="menu-items">
+            <ul class="nav-links">
+               
+                <li>
+                <a href="{% url 'student_progress' %}" {% if active_page == 'dashboard' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
+                    <i class="uil uil-files-landscapes"></i>
+                    <span class="link-name">Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'start_test' %}" {% if active_page == 'start_test' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
+                    <i class="uil uil-files-landscapes"></i>
+                    <span class="link-name">Exam</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'result' %}" {% if active_page == 'result' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
+                    <i class="uil uil-file-alt"></i>
+                    <span class="link-name">Result</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'test_history' %}" {% if active_page == 'history' %}style="background-color:#2563eb; color:#fff;"{% endif %}>
+                    <i class="uil uil-file-alt"></i>
+                    <span class="link-name">Test History</span>
+                </a>
+            </li>
+            </ul>
+            
+            <ul class="logout-mode">
+                <li>
+                    <a href="{% url 'logout' %}">
+                        <i class="uil uil-signout"></i>
+                        <span class="link-name">Logout</span>
+                    </a>
+                </li>
+            </ul>
+
+            </ul>
+        </div>
+    </nav>
+    <section class="dashboard" style="height: 100vh;width: 1050px;">
+        <div class="top">
+            Welcome, {{ student.firstname }} {{ student.lastname }} ({{ student.student_id }})
+        </div>
+        <div class="dash-content">
+            <div class="overview" style="width: 100%;">
+                <div class="title">
+                    <i class="uil uil-tachometer-fast-alt"></i>
+                    <!-- <span class="text">Dashboard</span> -->
+                </div>
+
+                {% block content %}
+
+                
+                {% endblock %}
+
+
+
+        </div>
+    </section>
+    
+</body>
+</html>
+
+
+
