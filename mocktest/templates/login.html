@@ -16,6 +16,9 @@
       <h2>STUDENT LOGIN</h2>
       <form method="post">
         {% csrf_token %}
+        {% if error %}
+          <center><h2 style="color:red">{{ error }}</h2></center>
+        {% endif %}
         <label>Username:</label><input type="text" name="name"><br>
         <label>Password:</label><input type="password" name="password"><br>
         <button type="submit" style="background-color: skyblue;">Login</button>    

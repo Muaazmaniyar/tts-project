@@ -53,7 +53,7 @@ def student_dashboard(request):
         "chart_data": chart_data,
         "active_page": "dashboard",  # 👈 mark Dashboard active
     }
-    return render(request, "dashboard.html", context)
+    return render(request, "progress.html", context)
 
 
 
