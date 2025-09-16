@@ -1,10 +1,15 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 
 class Student(models.Model):
-    firstname = models.CharField(max_length=100, null=True, blank=True)
-    lastname = models.CharField(max_length=100, null=True, blank=True)  
+    firstname = models.CharField(max_length=100)
+    lastname = models.CharField(max_length=100)  
     student_id = models.CharField(max_length=20, unique=True, editable=False,null=True, blank=True)  
     password = models.CharField(max_length=128 ,null=True, blank=True) 
+
+    def clean(self):
+        if not self.lastname:
+            raise ValidationError("Last name cannot be empty")
 
     def save(self, *args, **kwargs):
         if not self.student_id:  
