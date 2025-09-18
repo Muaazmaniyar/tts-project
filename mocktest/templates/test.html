@@ -70,8 +70,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const questions = document.querySelectorAll('.question');
+  const examForm = document.getElementById('mcq-test-form');
+  const display = document.getElementById('timer');
   let currentQuestionIndex = 0;
   let timerInterval = null;
+  let examActive = true;
+  let tabChangeCount = 0;
 
   // ---------------- TIMER ----------------
   function startTimer(durationInSeconds, display) {
@@ -87,18 +91,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
       display.textContent = minutes + ":" + seconds;
 
-      if (timer <= 60) display.classList.add('danger');
-      else if (timer <= 600) display.classList.add('warning');
+      if (timer <= 60) {
+        display.classList.remove('warning');
+        display.classList.add('danger');
+      } else if (timer <= 600) {
+        display.classList.remove('danger');
+        display.classList.add('warning');
+      } else {
+        display.classList.remove('warning', 'danger');
+      }
 
       if (--timer < 0) {
         clearInterval(timerInterval);
         alert("Time is up! Submitting test...");
-        document.getElementById('mcq-test-form').submit();
+        examActive = false;   // ✅ disable restrictions
+        examForm.submit();
       }
     }, 1000);
   }
 
-  const display = document.getElementById('timer');
   startTimer(60 * 60, display); // 60 minutes
 
   // ---------------- SHOW QUESTION ----------------
@@ -115,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('prev-btn').style.display = index===0?'none':'inline-block';
     document.getElementById('next-btn').style.display = index===questions.length-1?'none':'inline-block';
-    document.getElementById('submit-btn').style.display = 'inline-block';
+    document.getElementById('submit-btn').style.display = index===questions.length-1?'inline-block':'none';
   }
 
   window.goToQuestion = function(index) {
@@ -142,18 +153,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ---------------- SUBMIT ----------------
-  const examForm = document.getElementById('mcq-test-form');
-  let examActive = true;  // 🔴 NEW
   examForm.addEventListener('submit', (e)=>{
     if(!confirm("Submit your test?")) {
         e.preventDefault();
         return;
     }
-    examActive = false;  // 🔴 allow leaving after submit
+    examActive = false;  // ✅ allow leaving after submit
   });
 
-  // ---------------- TAB CHANGE RESTRICTION ---------------- 🔴 NEW
-  let tabChangeCount = 0;
+  // ---------------- TAB CHANGE RESTRICTION ----------------
   document.addEventListener("visibilitychange", function () {
       if (document.hidden && examActive) {
           tabChangeCount++;
@@ -161,13 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (tabChangeCount >= 3) {
               alert("❌ You switched tabs 3 times. Exam will be auto-submitted.");
-              examActive = false;
+              examActive = false;   // ✅ disable restrictions
               examForm.submit();
           }
       }
   });
 
-  // ---------------- PREVENT REFRESH / LEAVE ---------------- 🔴 NEW
+  // ---------------- PREVENT REFRESH / LEAVE ----------------
   window.addEventListener("beforeunload", function (e) {
       if (examActive) {
           e.preventDefault();
