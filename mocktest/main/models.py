@@ -1,17 +1,15 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 
 class Student(models.Model):
-    firstname = models.CharField(max_length=100)
-    lastname = models.CharField(max_length=100)  
-    student_id = models.CharField(max_length=20, unique=True, editable=False,null=True, blank=True)  
-    password = models.CharField(max_length=128 ,null=True, blank=True) 
-
-    def clean(self):
-        if not self.lastname:
-            raise ValidationError("Last name cannot be empty")
+    firstname = models.CharField(max_length=100, null=True, blank=True)
+    lastname = models.CharField(max_length=100, null=True, blank=True)
+    student_id = models.CharField(max_length=20, unique=True, editable=False, null=True, blank=True)
+    user_id = models.CharField(max_length=255, unique=True, editable=False, null=True, blank=True)
+    password = models.CharField(max_length=128, null=True, blank=True)
+    has_changed_password = models.BooleanField(default=False)  # NEW FIELD
 
     def save(self, *args, **kwargs):
+        # Auto-generate student_id
         if not self.student_id:  
             last_student = Student.objects.order_by('-id').first()
             if last_student and last_student.student_id:
@@ -20,10 +18,16 @@ class Student(models.Model):
             else:
                 new_number = 1
             self.student_id = f"MCS{new_number:03d}" 
+
+        # Auto-generate user_id
+        if not self.user_id:
+            self.user_id = f"{self.firstname}{self.lastname}".lower()
+
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.student_id} - {self.firstname} {self.lastname}"
+        return f"{self.student_id} - {self.user_id}"
+
 
 class Subject(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -54,5 +58,3 @@ class TestResult(models.Model):
 
     def __str__(self):
         return f"{self.student} - {self.subject} - {self.score}/{self.total_questions}"
-
-

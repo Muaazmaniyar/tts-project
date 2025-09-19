@@ -14,14 +14,16 @@
     <div class="login-container">
        <img src="../static/images/technokraft-logo.png" alt="" class="logo" style="width: 300px; height: 100px;">
       <h2>STUDENT LOGIN</h2>
-      <form method="post">
-        {% csrf_token %}
-        <label>Username:</label><input type="text" name="name"><br>
-        <label>Password:</label><input type="password" name="password"><br>
-        <button type="submit" style="background-color: skyblue;">Login</button>  
         {% if error %}
           <center><h4 style="color:red">{{ error }}</h4></center>
-        {% endif %}  
+        {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <label>Username:</label><input type="text" name="username" required><br>
+        <label>Password:</label><input type="password" name="password" required><br>
+        <button type="submit" style="background-color: #007bff ">Login</button>  
+          
+        <p>Forgot Password? <a href="{% url 'change_password' %}">Change Password</a></p>
       </form>
 
     </div>
