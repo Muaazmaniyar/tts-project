@@ -61,6 +61,10 @@ h2 {
     background: linear-gradient(45deg, #0056b3, #009acd);
     transform: scale(1.05);
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> d2b7ac9cc156bc48d0ca623fac9e859c60fdc4aa
 
 .button-79 {
   backface-visibility: hidden;
@@ -119,6 +123,69 @@ h2 {
   outline: 0 solid transparent;
 }
 
+<<<<<<< HEAD
 .button-79:not(:disabled):active {
   transform: translateY(.125rem);
 }
+=======
+.btn:hover {
+  transform: scale(1.08); /* zoom */
+}
+
+.btn:active {
+  transform: scale(1.02);
+  opacity: 0.96;
+}
+
+/* Primary button */
+.btn-primary {
+  background: black;
+  color: white;
+  box-shadow: 0 8px 22px rgba(2,132,199,0.18);
+}
+
+/* make the form area and button align nicely on small screens */
+.test-info form {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* small helper text for the card footer */
+.test-info p small {
+  display: block;
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+  body { padding: 18px; }
+  .test-info {
+    padding: 18px;
+    border-radius: 10px;
+  }
+  .test-info h2 { font-size: 1.3rem; }
+  .test-info form { flex-direction: column; align-items: stretch; }
+  .btn { width: 100%; padding: 12px; }
+}
+
+/* Optional small utility classes you might reuse */
+.text-muted { color: #6b7280; font-size: 0.95rem; }
+.center { text-align: center; }
+
+.parent {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+grid-template-rows: repeat(6, 1fr);
+grid-column-gap: 20px;
+grid-row-gap: 20px;
+}
+
+.div1 { grid-area: 1 / 1 / 2 / 2; margin-top:20px;}
+
+
+
+>>>>>>> d2b7ac9cc156bc48d0ca623fac9e859c60fdc4aa

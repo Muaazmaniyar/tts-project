@@ -247,16 +247,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const questions = document.querySelectorAll('.question');
-  const examForm = document.getElementById('mcq-test-form');
-  const submitBtn = document.getElementById('submit-btn');
-  const startOverlay = document.getElementById('start-overlay');
-  const startBtn = document.getElementById('start-exam-btn');
-  const container = document.querySelector('.container');
-  const display = document.getElementById('timer');
-
   let currentQuestionIndex = 0;
   let timerInterval = null;
-  let examActive = false;
 
   // --- Modal System ---
   const modal = document.getElementById("modal-overlay");
@@ -296,18 +288,28 @@ document.addEventListener('DOMContentLoaded', () => {
       display.textContent =
         (minutes<10?"0":"")+minutes+":"+(seconds<10?"0":"")+seconds;
 
-      if (timer <= 60) display.classList.add('danger');
-      else if (timer <= 600) display.classList.add('warning');
+      if (timer <= 60) {
+        display.classList.remove('warning');
+        display.classList.add('danger');
+      } else if (timer <= 600) {
+        display.classList.remove('danger');
+        display.classList.add('warning');
+      } else {
+        display.classList.remove('warning', 'danger');
+      }
 
       if (--timer < 0) {
         clearInterval(timerInterval);
-        await showModal("⏰ Time is up! Submitting test...");
-        examForm.submit();
+        alert("Time is up! Submitting test...");
+        document.getElementById('mcq-test-form').submit();
       }
     }, 1000);
   }
 
-  // --- Show Question ---
+  const display = document.getElementById('timer');
+  startTimer(60 * 60, display); // 60 minutes
+
+  // ---------------- SHOW QUESTION ----------------
   function showQuestion(index) {
     currentQuestionIndex = index;
     questions.forEach((q,i)=> q.style.display = (i===index)?"block":"none");
@@ -319,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('prev-btn').disabled = index===0;
     document.getElementById('next-btn').style.display = index===questions.length-1?'none':'inline-block';
-    submitBtn.style.display = 'inline-block';
+    document.getElementById('submit-btn').style.display = 'inline-block';
   }
 
   window.goToQuestion = showQuestion; // enable sidebar buttons
@@ -342,31 +344,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if(currentQuestionIndex >0) showQuestion(currentQuestionIndex-1);
   });
 
-  // --- Submit ---
-  examForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const confirmSubmit = await showModal("Do you really want to submit?", true);
-    if (confirmSubmit) {
-      examActive = false;
-      examForm.submit();
+  // ---------------- SUBMIT ----------------
+  const examForm = document.getElementById('mcq-test-form');
+  let examActive = true;  // 🔴 NEW
+  examForm.addEventListener('submit', (e)=>{
+    if(!confirm("Submit your test?")) {
+        e.preventDefault();
+        return;
     }
+    examActive = false;  // 🔴 allow leaving after submit
   });
 
-  // --- Tab Restriction ---
+  // ---------------- TAB CHANGE RESTRICTION ---------------- 🔴 NEW
   let tabChangeCount = 0;
-  document.addEventListener("visibilitychange", async ()=> {
-    if (document.hidden && examActive) {
-      tabChangeCount++;
-      await showModal("⚠️ Warning: You switched tabs! Attempt "+tabChangeCount+" of 3");
-      if (tabChangeCount >= 3) {
-        await showModal("❌ You switched tabs 3 times. Exam will be auto-submitted.");
-        examActive = false;
-        examForm.submit();
+  document.addEventListener("visibilitychange", function () {
+      if (document.hidden && examActive) {
+          tabChangeCount++;
+          alert("⚠️ Warning: You switched tabs! Attempt " + tabChangeCount + " of 3");
+
+          if (tabChangeCount >= 3) {
+              alert("❌ You switched tabs 3 times. Exam will be auto-submitted.");
+              examActive = false;
+              examForm.submit();
+          }
       }
-    }
   });
 
-  // --- Leave/Refresh ---
+  // ---------------- PREVENT REFRESH / LEAVE ---------------- 🔴 NEW
   window.addEventListener("beforeunload", function (e) {
     if (examActive) {
       e.preventDefault();
